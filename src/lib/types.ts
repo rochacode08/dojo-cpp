@@ -50,3 +50,10 @@ export interface RunCodeResponse {
   status: SubmissionStatus;
   results: TestResultRow[];
 }
+
+export interface SubmissionHistoryEntry {
+  id: string;
+  user_id: string;
+  status: SubmissionStatus;
+  created_at: string;
+}

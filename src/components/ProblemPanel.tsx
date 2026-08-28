@@ -1,4 +1,4 @@
-import type { Difficulty, Problem, TestCase } from "../lib/types";
+import type { Difficulty, Problem, Profile, SubmissionHistoryEntry, SubmissionStatus, TestCase } from "../lib/types";
 
 const DIFFICULTY_PALETTE: Record<Difficulty, [string, string, string]> = {
   Fácil: ["rgba(35,134,54,0.16)", "#5ac37a", "rgba(90,195,122,0.35)"],
@@ -6,12 +6,41 @@ const DIFFICULTY_PALETTE: Record<Difficulty, [string, string, string]> = {
   Difícil: ["rgba(191,45,45,0.16)", "#f07171", "rgba(240,113,113,0.35)"],
 };
 
+const STATUS_LABEL: Record<SubmissionStatus, string> = {
+  accepted: "Aceito",
+  wrong_answer: "Saída errada",
+  compile_error: "Erro de compilação",
+  runtime_error: "Erro em execução",
+  pending: "Pendente",
+};
+
+const STATUS_COLOR: Record<SubmissionStatus, string> = {
+  accepted: "#6ee7a0",
+  wrong_answer: "#ff8585",
+  compile_error: "#ff8585",
+  runtime_error: "#ff8585",
+  pending: "#b3b3b3",
+};
+
+function relativeTime(iso: string): string {
+  const diffMs = Date.now() - new Date(iso).getTime();
+  const min = Math.floor(diffMs / 60000);
+  if (min < 1) return "agora";
+  if (min < 60) return `há ${min} min`;
+  const h = Math.floor(min / 60);
+  if (h < 24) return `há ${h}h`;
+  const d = Math.floor(h / 24);
+  return `há ${d}d`;
+}
+
 interface ProblemPanelProps {
   problem: Problem;
   sampleTests: TestCase[];
+  history?: SubmissionHistoryEntry[];
+  profiles?: Profile[];
 }
 
-export default function ProblemPanel({ problem, sampleTests }: ProblemPanelProps) {
+export default function ProblemPanel({ problem, sampleTests, history = [], profiles = [] }: ProblemPanelProps) {
   const [diffBg, diffFg, diffBorder] = DIFFICULTY_PALETTE[problem.difficulty];
 
   return (
@@ -80,6 +109,40 @@ export default function ProblemPanel({ problem, sampleTests }: ProblemPanelProps
             </div>
           ))}
         </div>
+
+        {history.length > 0 && (
+          <div className="flex flex-col gap-2.5">
+            <div className="h-px bg-dojo-border" />
+            <span className="text-[11px] font-semibold uppercase tracking-[0.06em] text-dojo-textDim">
+              Histórico de envios
+            </span>
+            <div className="flex flex-col overflow-hidden rounded-lg border border-dojo-border2">
+              {history.map((h) => {
+                const profile = profiles.find((p) => p.id === h.user_id);
+                return (
+                  <div
+                    key={h.id}
+                    className="flex items-center gap-2.5 border-b border-dojo-border2 bg-[#0d0d0d] px-3 py-2 text-[12px] last:border-b-0"
+                  >
+                    <div
+                      className="flex h-5 w-5 flex-none items-center justify-center rounded-full text-[8px] font-semibold text-white"
+                      style={{ background: profile?.avatar_color ?? "#3a3a3a" }}
+                    >
+                      {profile?.avatar_initials ?? "?"}
+                    </div>
+                    <span className="min-w-0 flex-1 truncate text-[#c5c5c5]">
+                      {profile?.display_name ?? "alguém"}
+                    </span>
+                    <span className="flex-none font-medium" style={{ color: STATUS_COLOR[h.status] }}>
+                      {STATUS_LABEL[h.status]}
+                    </span>
+                    <span className="flex-none text-[11px] text-[#7a7a7a]">{relativeTime(h.created_at)}</span>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        )}
       </div>
     </section>
   );

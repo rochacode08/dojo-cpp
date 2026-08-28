@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import { useParams } from "react-router-dom";
 import type { Session } from "@supabase/supabase-js";
 import { supabase } from "../lib/supabaseClient";
-import type { Problem, Profile, RunCodeResponse, TestCase } from "../lib/types";
+import type { Problem, Profile, RunCodeResponse, SubmissionHistoryEntry, TestCase } from "../lib/types";
 import { useCollabRoom } from "../lib/useCollabRoom";
 import Header from "../components/Header";
 import ProblemPanel from "../components/ProblemPanel";
@@ -18,6 +18,7 @@ export default function ProblemPage({ session }: ProblemPageProps) {
   const [profiles, setProfiles] = useState<Profile[]>([]);
   const [problem, setProblem] = useState<Problem | null>(null);
   const [sampleTests, setSampleTests] = useState<TestCase[]>([]);
+  const [history, setHistory] = useState<SubmissionHistoryEntry[]>([]);
   const [loadError, setLoadError] = useState<string | null>(null);
   const [testsHeight, setTestsHeight] = useState(268);
   const draggingRef = useRef(false);
@@ -57,6 +58,8 @@ export default function ProblemPage({ session }: ProblemPageProps) {
 
         if (testsError) console.error("erro ao buscar test_cases:", testsError);
         if (testsData) setSampleTests(testsData as TestCase[]);
+
+        await fetchHistory(p.id);
       } else {
         setLoadError(
           problemError
@@ -66,6 +69,18 @@ export default function ProblemPage({ session }: ProblemPageProps) {
       }
     })();
   }, [slug]);
+
+  async function fetchHistory(problemId: string) {
+    const { data, error } = await supabase
+      .from("submissions")
+      .select("id, user_id, status, created_at")
+      .eq("problem_id", problemId)
+      .order("created_at", { ascending: false })
+      .limit(15);
+
+    if (error) console.error("erro ao buscar histórico de envios:", error);
+    if (data) setHistory(data as SubmissionHistoryEntry[]);
+  }
 
   async function handleRun() {
     if (!problem || !room.isPilot) return;
@@ -91,6 +106,7 @@ export default function ProblemPage({ session }: ProblemPageProps) {
     }
 
     room.setResult(data.results);
+    fetchHistory(problem.id);
   }
 
   function handleReset() {
@@ -185,7 +201,7 @@ export default function ProblemPage({ session }: ProblemPageProps) {
       </div>
 
       <div className="grid min-h-0 flex-1 grid-cols-1 overflow-y-auto md:grid-cols-[minmax(360px,42%)_1fr] md:overflow-hidden">
-        <ProblemPanel problem={problem} sampleTests={sampleTests} />
+        <ProblemPanel problem={problem} sampleTests={sampleTests} history={history} profiles={profiles} />
 
         <section className="flex min-h-0 flex-col bg-dojo-bg">
           <CodeEditor code={room.state.code} onChange={room.updateCode} readOnly={!room.isPilot} />
