@@ -138,14 +138,14 @@ export default function LoginPage() {
       >
         <div className="flex flex-col items-center gap-3 text-center">
           <div
-            className="flex h-11 w-11 items-center justify-center rounded-xl font-mono text-[15px] font-bold text-white"
+            className="flex h-11 w-11 items-center justify-center rounded-xl font-mono text-[13px] font-bold text-white"
             style={{ background: "#2b95e0", boxShadow: "0 0 0 1px rgba(255,255,255,0.15), 0 8px 20px rgba(43,149,224,0.4)" }}
           >
-            C+
+            C++
           </div>
           <div>
             <h1 className="m-0 text-[19px] font-bold tracking-[-0.01em] text-dojo-textBright">C++ Dojo</h1>
-            <p className="m-0 mt-1 text-[12.5px] text-dojo-textDim">Resolva desafios. Junto. Em tempo real.</p>
+            <p className="m-0 mt-1 text-[12.5px] text-dojo-textDim">Você entra vibecoder e sai programando no bloco de notas</p>
           </div>
         </div>
 
