@@ -1,4 +1,4 @@
-import { Link } from "react-router-dom";
+import { Link, useLocation } from "react-router-dom";
 import type { Profile } from "../lib/types";
 
 interface HeaderProps {
@@ -8,6 +8,9 @@ interface HeaderProps {
 }
 
 export default function Header({ profiles, subtitle, backTo }: HeaderProps) {
+  const location = useLocation();
+  const onPlacar = location.pathname === "/placar";
+
   return (
     <header className="flex h-11 flex-none items-center justify-between gap-4 border-b border-dojo-border bg-dojo-panel px-4">
       <div className="flex items-center gap-2.5">
@@ -25,6 +28,20 @@ export default function Header({ profiles, subtitle, backTo }: HeaderProps) {
       </div>
 
       <div className="flex items-center gap-3.5">
+        <Link
+          to="/placar"
+          className="flex items-center gap-1.5 text-[11.5px] font-medium transition-colors"
+          style={{ color: onPlacar ? "#2b95e0" : "#a3a3a3" }}
+        >
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <path d="M8 21h8" />
+            <path d="M12 17v4" />
+            <path d="M7 4h10v5a5 5 0 0 1-10 0V4Z" />
+            <path d="M7 6H4a2 2 0 0 0 0 4h1" />
+            <path d="M17 6h3a2 2 0 0 1 0 4h-1" />
+          </svg>
+          Placar
+        </Link>
         <div className="flex items-center gap-1.5 text-[11px] text-dojo-textDim">
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
             <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"></path>

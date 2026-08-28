@@ -5,6 +5,7 @@ import { supabase } from "./lib/supabaseClient";
 import LoginPage from "./pages/LoginPage";
 import HomePage from "./pages/HomePage";
 import ProblemPage from "./pages/ProblemPage";
+import PlacarPage from "./pages/PlacarPage";
 
 export default function App() {
   const [session, setSession] = useState<Session | null>(null);
@@ -44,6 +45,10 @@ export default function App() {
       <Route
         path="/problema/:slug"
         element={session ? <ProblemPage session={session} /> : <Navigate to="/login" replace />}
+      />
+      <Route
+        path="/placar"
+        element={session ? <PlacarPage session={session} /> : <Navigate to="/login" replace />}
       />
     </Routes>
   );
