@@ -7,18 +7,19 @@ const GCC_LOCATION = /^([^:]+):(\d+):(\d+):\s*(error|warning|note):/;
 function formatCompilerOutput(text: string) {
   return text.split("\n").map((line, i) => {
     const m = line.match(GCC_LOCATION);
-    if (!m) return <div key={i}>{line || " "}</div>;
+    if (!m) return <div key={i}>{line || " "}</div>;
     const [, file, ln, col, kind] = m;
     const rest = line.slice(m[0].length);
-    const kindColor = kind === "error" ? "#ff8585" : kind === "warning" ? "#f0c674" : "#8a9bb3";
+    const kindColor =
+      kind === "error" ? "var(--dojo-red)" : kind === "warning" ? "var(--dojo-amber)" : "var(--dojo-note)";
     return (
       <div key={i}>
-        <span className="text-[#7a8ea3]">{file}</span>
-        <span className="text-[#5a5a5a]">:</span>
-        <span className="text-[#c8b98a]">{ln}</span>
-        <span className="text-[#5a5a5a]">:</span>
-        <span className="text-[#c8b98a]">{col}</span>
-        <span className="text-[#5a5a5a]">: </span>
+        <span style={{ color: "var(--dojo-code-path)" }}>{file}</span>
+        <span className="text-dojo-textSubtle">:</span>
+        <span style={{ color: "var(--dojo-code-number)" }}>{ln}</span>
+        <span className="text-dojo-textSubtle">:</span>
+        <span style={{ color: "var(--dojo-code-number)" }}>{col}</span>
+        <span className="text-dojo-textSubtle">: </span>
         <span className="font-semibold" style={{ color: kindColor }}>
           {kind}:
         </span>
@@ -77,10 +78,10 @@ export default function TestsPanel({ phase, rows, height, canRun, onRun, onReset
   const passed = rows.filter((r) => r.passed).length;
 
   let summary = "aguardando execução";
-  let summaryColor = "#8a8a8a";
+  let summaryColor = "var(--dojo-text-dim)";
   if (phase !== "idle") {
     summary = `${passed}/${rows.length} testes aprovados`;
-    summaryColor = running ? "#b3b3b3" : passed === rows.length ? "#6ee7a0" : "#ff8585";
+    summaryColor = running ? "var(--dojo-text-dim)" : passed === rows.length ? "var(--dojo-green-bright)" : "var(--dojo-red)";
   }
 
   let footerLine = "> pressione Executar e Testar para compilar main.cpp";
@@ -113,7 +114,7 @@ export default function TestsPanel({ phase, rows, height, canRun, onRun, onReset
             onClick={onReset}
             disabled={!canRun}
             title={canRun ? undefined : "Só o piloto pode reiniciar"}
-            className="inline-flex items-center gap-1.5 rounded-md border border-dojo-border2 bg-[#171717] px-3 py-1.5 font-sans text-[12.5px] text-[#d6d6d6] transition hover:border-[#565656] hover:bg-[#1f1f1f] hover:text-dojo-textBright disabled:cursor-not-allowed disabled:opacity-40 disabled:hover:border-dojo-border2 disabled:hover:bg-[#171717]"
+            className="inline-flex items-center gap-1.5 rounded-md border border-dojo-border2 bg-dojo-surfaceRaised px-3 py-1.5 font-sans text-[12.5px] text-dojo-text transition hover:bg-dojo-surfaceHover hover:text-dojo-textBright disabled:cursor-not-allowed disabled:opacity-40 disabled:hover:bg-dojo-surfaceRaised"
           >
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
               <path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8" />
@@ -127,8 +128,8 @@ export default function TestsPanel({ phase, rows, height, canRun, onRun, onReset
             title={canRun ? undefined : "Só o piloto pode executar"}
             className="inline-flex items-center gap-2 rounded-md px-4 py-2 font-sans text-[13px] font-semibold text-white transition hover:brightness-110 disabled:cursor-not-allowed disabled:hover:brightness-100"
             style={{
-              background: running || !canRun ? "#1a1a1a" : "#2ea043",
-              border: `1px solid ${running || !canRun ? "#454545" : "rgba(255,255,255,0.14)"}`,
+              background: running || !canRun ? "var(--dojo-surface-raised)" : "#2ea043",
+              border: `1px solid ${running || !canRun ? "var(--dojo-border2)" : "rgba(255,255,255,0.14)"}`,
               boxShadow: running || !canRun ? "none" : "0 0 0 1px rgba(46,160,67,0.25), 0 2px 10px rgba(46,160,67,0.35)",
               opacity: !canRun && !running ? 0.5 : 1,
             }}
@@ -144,7 +145,7 @@ export default function TestsPanel({ phase, rows, height, canRun, onRun, onReset
           onMouseDown={onResizeStart}
           className="group flex h-[6px] flex-none cursor-row-resize items-center justify-center"
         >
-          <div className="h-[3px] w-10 rounded-full bg-[#3a3a3a] group-hover:bg-dojo-accent" />
+          <div className="h-[3px] w-10 rounded-full bg-dojo-border2 group-hover:bg-dojo-accent" />
         </div>
 
         <div className="flex h-[34px] flex-none items-center justify-between gap-3 border-b border-dojo-border px-3.5">
@@ -169,54 +170,54 @@ export default function TestsPanel({ phase, rows, height, canRun, onRun, onReset
               row.status === "ERRO DE COMPILAÇÃO" && firstCompileErrorIndex !== i;
 
             return (
-            <div key={i} className="animate-dojo-fade border-b border-[#242424] py-[7px]">
+            <div key={i} className="animate-dojo-fade border-b border-dojo-border py-[7px]">
               <div className="flex items-center gap-2.5">
-                <span className="flex w-3.5 items-center" style={{ color: row.passed ? "#6ee7a0" : "#ff8585" }}>
+                <span className="flex w-3.5 items-center" style={{ color: row.passed ? "var(--dojo-green-bright)" : "var(--dojo-red)" }}>
                   {row.passed ? <Check /> : <Cross />}
                 </span>
-                <span className="w-[78px] text-[#b3b3b3]">{row.name}</span>
+                <span className="w-[78px] text-dojo-textDim">{row.name}</span>
                 <span
                   className="rounded-full border px-2 py-[1px] text-[11px] font-semibold"
                   style={
                     row.passed
-                      ? { background: "rgba(110,231,160,0.14)", color: "#6ee7a0", borderColor: "rgba(110,231,160,0.35)" }
-                      : { background: "rgba(255,133,133,0.14)", color: "#ff8585", borderColor: "rgba(255,133,133,0.35)" }
+                      ? { background: "var(--dojo-pass-soft-bg)", color: "var(--dojo-green-bright)", borderColor: "var(--dojo-pass-soft-border)" }
+                      : { background: "var(--dojo-fail-soft-bg)", color: "var(--dojo-red)", borderColor: "var(--dojo-fail-soft-border)" }
                   }
                 >
                   {row.status}
                 </span>
-                <span className="ml-auto text-[#7a7a7a]">{row.time}</span>
+                <span className="ml-auto text-dojo-textFaint">{row.time}</span>
               </div>
               {!row.passed && row.status === "ERRO DE COMPILAÇÃO" && (
-                <div className="ml-6 mt-1.5 overflow-x-auto whitespace-pre rounded-r border-l-2 border-[#d64545] bg-[#241010] px-2.5 py-2 leading-[1.65] text-[#e0b0b0]">
+                <div className="ml-6 mt-1.5 overflow-x-auto whitespace-pre rounded-r border-l-2 border-dojo-dangerBorder bg-dojo-dangerBg px-2.5 py-2 leading-[1.65] text-dojo-dangerText">
                   {isRepeatedCompileError
                     ? "(mesmo erro de compilação do caso #1 acima — corrija-o para rodar os demais)"
                     : formatCompilerOutput(row.received ?? "")}
                 </div>
               )}
               {!row.passed && row.status === "RUNTIME ERROR" && (
-                <div className="ml-6 mt-1.5 whitespace-pre-wrap break-words rounded-r border-l-2 border-[#d64545] bg-[#241010] px-2.5 py-2 leading-[1.65] text-[#e0b0b0]">
+                <div className="ml-6 mt-1.5 whitespace-pre-wrap break-words rounded-r border-l-2 border-dojo-dangerBorder bg-dojo-dangerBg px-2.5 py-2 leading-[1.65] text-dojo-dangerText">
                   <div>entrada: {row.input}</div>
                   <div>
-                    erro em tempo de execução: <span className="text-[#ff9d8a]">{row.received}</span>
+                    erro em tempo de execução: <span className="text-dojo-red">{row.received}</span>
                   </div>
                 </div>
               )}
               {!row.passed && row.status !== "ERRO DE COMPILAÇÃO" && row.status !== "RUNTIME ERROR" && (
-                <div className="ml-6 mt-1.5 whitespace-pre-wrap break-words rounded-r border-l-2 border-[#d64545] bg-[#241010] px-2.5 py-2 leading-[1.65] text-[#e0b0b0]">
+                <div className="ml-6 mt-1.5 whitespace-pre-wrap break-words rounded-r border-l-2 border-dojo-dangerBorder bg-dojo-dangerBg px-2.5 py-2 leading-[1.65] text-dojo-dangerText">
                   <div>entrada:   {row.input}</div>
                   <div>
-                    esperado:  <span className="text-[#c8e0ba]">{row.expected}</span>
+                    esperado:  <span className="text-dojo-greenBright">{row.expected}</span>
                   </div>
                   <div>
-                    recebido:  <span className="text-[#ff9d8a]">{row.received}</span>
+                    recebido:  <span className="text-dojo-red">{row.received}</span>
                   </div>
                 </div>
               )}
             </div>
             );
           })}
-          <div className="pt-2.5 text-[#7a7a7a]">{footerLine}</div>
+          <div className="pt-2.5 text-dojo-textFaint">{footerLine}</div>
         </div>
       </div>
     </>

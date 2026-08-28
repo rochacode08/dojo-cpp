@@ -120,11 +120,11 @@ function RankRow({
   return (
     <div
       className="flex items-center gap-4 rounded-xl bg-dojo-card px-5 py-4"
-      style={{ border: isMe ? "1px solid rgba(43,149,224,0.4)" : "1px solid rgba(255,255,255,0.05)" }}
+      style={{ border: isMe ? "1px solid rgba(43,149,224,0.4)" : "1px solid var(--dojo-hairline)" }}
     >
       <span
         className="w-6 flex-none text-center font-mono text-[15px] font-bold"
-        style={{ color: medal ?? "#5a5a5a" }}
+        style={{ color: medal ?? "var(--dojo-text-subtle)" }}
       >
         {rank}
       </span>
@@ -142,15 +142,18 @@ function RankRow({
             {r.profile.display_name}
           </span>
           {isMe && (
-            <span className="rounded-full bg-dojo-accent/15 px-1.5 py-[1px] text-[10px] font-medium text-dojo-accent">
+            <span
+              className="rounded-full px-1.5 py-[1px] text-[10px] font-medium text-dojo-accent"
+              style={{ background: "var(--dojo-accent-soft-bg)" }}
+            >
               você
             </span>
           )}
         </div>
-        <div className="h-1.5 w-full overflow-hidden rounded-full bg-[#0a0a0a]">
+        <div className="h-1.5 w-full overflow-hidden rounded-full bg-dojo-surfaceSunken">
           <div
             className="h-full rounded-full transition-all"
-            style={{ width: `${Math.max(pct, r.solved > 0 ? 4 : 0)}%`, background: "#2b95e0" }}
+            style={{ width: `${Math.max(pct, r.solved > 0 ? 4 : 0)}%`, background: "var(--dojo-accent)" }}
           />
         </div>
       </div>

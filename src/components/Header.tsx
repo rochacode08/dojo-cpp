@@ -1,5 +1,6 @@
 import { Link, useLocation } from "react-router-dom";
 import type { Profile } from "../lib/types";
+import { useTheme } from "../lib/useTheme";
 
 interface HeaderProps {
   profiles: Profile[];
@@ -7,9 +8,27 @@ interface HeaderProps {
   backTo?: string;
 }
 
+function SunIcon() {
+  return (
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <circle cx="12" cy="12" r="4" />
+      <path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41" />
+    </svg>
+  );
+}
+
+function MoonIcon() {
+  return (
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z" />
+    </svg>
+  );
+}
+
 export default function Header({ profiles, subtitle, backTo }: HeaderProps) {
   const location = useLocation();
   const onPlacar = location.pathname === "/placar";
+  const { theme, toggleTheme } = useTheme();
 
   return (
     <header className="flex h-11 flex-none items-center justify-between gap-3 border-b border-dojo-border bg-dojo-panel px-3 sm:px-4">
@@ -28,10 +47,17 @@ export default function Header({ profiles, subtitle, backTo }: HeaderProps) {
       </div>
 
       <div className="flex flex-none items-center gap-2.5 sm:gap-3.5">
+        <button
+          onClick={toggleTheme}
+          title={theme === "dark" ? "Mudar pro tema claro" : "Mudar pro tema escuro"}
+          className="flex items-center text-dojo-textDim transition-colors hover:text-dojo-textBright"
+        >
+          {theme === "dark" ? <SunIcon /> : <MoonIcon />}
+        </button>
         <Link
           to="/placar"
           className="flex items-center gap-1.5 text-[11.5px] font-medium transition-colors"
-          style={{ color: onPlacar ? "#2b95e0" : "#a3a3a3" }}
+          style={{ color: onPlacar ? "var(--dojo-accent)" : "var(--dojo-text-dim)" }}
         >
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
             <path d="M8 21h8" />

@@ -2,11 +2,87 @@
 @tailwind components;
 @tailwind utilities;
 
+:root {
+  --dojo-bg: #000000;
+  --dojo-panel: #111318;
+  --dojo-panel2: #181b21;
+  --dojo-card: #15171c;
+  --dojo-card-hover: #1b1e24;
+  --dojo-border: #262a31;
+  --dojo-border2: #3a3f47;
+  --dojo-text: #e4e4e4;
+  --dojo-text-bright: #f7f7f7;
+  --dojo-text-dim: #a3a3a3;
+  --dojo-text-faint: #7a7a7a;
+  --dojo-text-subtle: #5a5a5a;
+  --dojo-accent: #2b95e0;
+  --dojo-green: #2ea043;
+  --dojo-green-bright: #6ee7a0;
+  --dojo-red: #ff8585;
+  --dojo-amber: #f0c674;
+  --dojo-surface-sunken: #0d0d0d;
+  --dojo-surface-raised: #171717;
+  --dojo-surface-hover: #1f1f1f;
+  --dojo-hairline: rgba(255, 255, 255, 0.06);
+  --dojo-hairline-strong: rgba(255, 255, 255, 0.14);
+  --dojo-danger-bg: #241010;
+  --dojo-danger-border: #d64545;
+  --dojo-danger-text: #e0b0b0;
+  --dojo-red-soft-border: rgba(255, 133, 133, 0.4);
+  --dojo-accent-soft-bg: rgba(43, 149, 224, 0.15);
+  --dojo-code-output: #b5cea8;
+  --dojo-code-path: #7a8ea3;
+  --dojo-code-number: #c8b98a;
+  --dojo-note: #8a9bb3;
+  --dojo-pass-soft-bg: rgba(110, 231, 160, 0.14);
+  --dojo-pass-soft-border: rgba(110, 231, 160, 0.35);
+  --dojo-fail-soft-bg: rgba(255, 133, 133, 0.14);
+  --dojo-fail-soft-border: rgba(255, 133, 133, 0.35);
+}
+
+:root[data-theme="light"] {
+  --dojo-bg: #f3f4f6;
+  --dojo-panel: #ffffff;
+  --dojo-panel2: #eef0f3;
+  --dojo-card: #ffffff;
+  --dojo-card-hover: #f7f8fa;
+  --dojo-border: #e1e4e8;
+  --dojo-border2: #cbd0d6;
+  --dojo-text: #24292e;
+  --dojo-text-bright: #0d1117;
+  --dojo-text-dim: #57606a;
+  --dojo-text-faint: #6e7781;
+  --dojo-text-subtle: #8b929b;
+  --dojo-accent: #1b78c4;
+  --dojo-green: #1e8e3e;
+  --dojo-green-bright: #16793f;
+  --dojo-red: #cf3030;
+  --dojo-amber: #9a6700;
+  --dojo-surface-sunken: #eef0f3;
+  --dojo-surface-raised: #eef0f3;
+  --dojo-surface-hover: #e4e7eb;
+  --dojo-hairline: rgba(0, 0, 0, 0.08);
+  --dojo-hairline-strong: rgba(0, 0, 0, 0.16);
+  --dojo-danger-bg: #fdecea;
+  --dojo-danger-border: #d64545;
+  --dojo-danger-text: #9c2b2b;
+  --dojo-red-soft-border: rgba(207, 48, 48, 0.35);
+  --dojo-accent-soft-bg: rgba(27, 120, 196, 0.12);
+  --dojo-code-output: #1f7a3f;
+  --dojo-code-path: #3d5570;
+  --dojo-code-number: #8a6d23;
+  --dojo-note: #55637a;
+  --dojo-pass-soft-bg: rgba(30, 142, 62, 0.1);
+  --dojo-pass-soft-border: rgba(30, 142, 62, 0.35);
+  --dojo-fail-soft-bg: rgba(207, 48, 48, 0.08);
+  --dojo-fail-soft-border: rgba(207, 48, 48, 0.35);
+}
+
 html,
 body {
   margin: 0;
   padding: 0;
-  background: #000000;
+  background: var(--dojo-bg);
 }
 
 * {

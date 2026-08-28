@@ -11,6 +11,14 @@
       rel="stylesheet"
     />
     <title>C++ Dojo</title>
+    <script>
+      (function () {
+        try {
+          var theme = localStorage.getItem("dojo-theme") || "dark";
+          document.documentElement.setAttribute("data-theme", theme);
+        } catch (e) {}
+      })();
+    </script>
   </head>
   <body>
     <div id="root"></div>

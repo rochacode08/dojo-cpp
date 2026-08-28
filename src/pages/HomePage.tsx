@@ -8,9 +8,9 @@ import Header from "../components/Header";
 const DIFFICULTIES: Difficulty[] = ["Fácil", "Médio", "Difícil"];
 
 const DIFFICULTY_COLOR: Record<Difficulty, string> = {
-  Fácil: "#6ee7a0",
-  Médio: "#f0c674",
-  Difícil: "#ff8585",
+  Fácil: "var(--dojo-green-bright)",
+  Médio: "var(--dojo-amber)",
+  Difícil: "var(--dojo-red)",
 };
 
 type StatusFilter = "todos" | "resolvidos" | "pendentes";
@@ -127,15 +127,15 @@ export default function HomePage({ session }: HomePageProps) {
               </p>
             </div>
 
-            <div className="flex-none rounded-xl bg-dojo-panel px-5 py-3.5" style={{ border: "1px solid rgba(255,255,255,0.06)" }}>
+            <div className="flex-none rounded-xl bg-dojo-panel px-5 py-3.5" style={{ border: "1px solid var(--dojo-hairline)" }}>
               <div className="flex items-baseline gap-2">
                 <span className="font-mono text-[22px] font-bold text-dojo-textBright">{solvedIds.size}</span>
                 <span className="font-mono text-[13px] text-dojo-textDim">/ {problems.length} concluídos</span>
               </div>
-              <div className="mt-2.5 h-2 w-44 overflow-hidden rounded-full bg-[#0a0a0a]">
+              <div className="mt-2.5 h-2 w-44 overflow-hidden rounded-full bg-dojo-surfaceSunken">
                 <div
                   className="h-full rounded-full transition-all"
-                  style={{ width: `${Math.max(pct, 4)}%`, background: "#2b95e0", boxShadow: "0 0 8px rgba(43,149,224,0.6)" }}
+                  style={{ width: `${Math.max(pct, 4)}%`, background: "var(--dojo-accent)", boxShadow: "0 0 8px rgba(43,149,224,0.6)" }}
                 />
               </div>
               <div className="mt-1.5 text-right font-mono text-[11px] text-dojo-accent">{pct}% concluído</div>
@@ -143,7 +143,7 @@ export default function HomePage({ session }: HomePageProps) {
           </div>
 
           {loadError && (
-            <div className="rounded-md border border-dojo-red/40 bg-[#241010] px-3 py-2 text-[13px] text-dojo-red">
+            <div className="rounded-md bg-dojo-dangerBg px-3 py-2 text-[13px] text-dojo-red" style={{ border: "1px solid var(--dojo-red-soft-border)" }}>
               Erro ao carregar problemas: {loadError}
             </div>
           )}
@@ -173,7 +173,7 @@ export default function HomePage({ session }: HomePageProps) {
           </div>
 
           {/* Filtros */}
-          <div className="flex flex-col gap-4 rounded-xl bg-dojo-panel p-5" style={{ border: "1px solid rgba(255,255,255,0.06)" }}>
+          <div className="flex flex-col gap-4 rounded-xl bg-dojo-panel p-5" style={{ border: "1px solid var(--dojo-hairline)" }}>
             <div className="flex items-center gap-2">
               <span className="h-1.5 w-1.5 rounded-full bg-dojo-accent" />
               <span className="text-[11px] font-semibold uppercase tracking-[0.1em] text-dojo-textDim">
@@ -290,8 +290,8 @@ function FilterChip({
       className="rounded-full px-3 py-1.5 text-[12px] font-medium transition"
       style={
         active
-          ? { background: "rgba(43,149,224,0.18)", color: "#2b95e0", boxShadow: "0 0 0 1px rgba(43,149,224,0.4) inset" }
-          : { background: "#0e1013", color: "#a3a3a3" }
+          ? { background: "var(--dojo-accent-soft-bg)", color: "var(--dojo-accent)", boxShadow: "0 0 0 1px rgba(43,149,224,0.4) inset" }
+          : { background: "var(--dojo-surface-sunken)", color: "var(--dojo-text-dim)" }
       }
     >
       {children}
@@ -306,20 +306,20 @@ function ProblemCard({ problem, solved, index }: { problem: Problem; solved: boo
     <Link
       to={`/problema/${problem.slug}`}
       className="group relative flex flex-col gap-3.5 overflow-hidden rounded-xl bg-dojo-card px-6 py-5 transition-all duration-200 ease-out hover:-translate-y-[3px] hover:bg-dojo-cardHover"
-      style={{ border: "1px solid rgba(255,255,255,0.05)" }}
+      style={{ border: "1px solid var(--dojo-hairline)" }}
       onMouseEnter={(e) => {
         e.currentTarget.style.border = "1px solid rgba(43,149,224,0.45)";
-        e.currentTarget.style.boxShadow = "0 14px 32px rgba(0,0,0,0.5)";
+        e.currentTarget.style.boxShadow = "0 14px 32px rgba(0,0,0,0.25)";
       }}
       onMouseLeave={(e) => {
-        e.currentTarget.style.border = "1px solid rgba(255,255,255,0.05)";
+        e.currentTarget.style.border = "1px solid var(--dojo-hairline)";
         e.currentTarget.style.boxShadow = "none";
       }}
     >
       <span className="absolute left-0 top-0 h-full w-[3px]" style={{ background: diffColor, opacity: 0.7 }} />
 
       <div className="flex items-center justify-between">
-        <span className="font-mono text-[12px] text-[#5a5a5a]">{String(index).padStart(2, "0")}</span>
+        <span className="font-mono text-[12px] text-dojo-textSubtle">{String(index).padStart(2, "0")}</span>
         <span
           className="flex items-center gap-1.5 text-[11px] font-bold uppercase tracking-[0.06em]"
           style={{ color: diffColor }}
@@ -330,17 +330,21 @@ function ProblemCard({ problem, solved, index }: { problem: Problem; solved: boo
       </div>
 
       <div className="flex flex-col gap-2.5">
-        <span className="text-[18px] font-semibold leading-tight text-dojo-textBright transition-colors group-hover:text-white">
+        <span className="text-[18px] font-semibold leading-tight text-dojo-textBright">
           {problem.title}
         </span>
-        <div className="h-px w-full bg-white/[0.06]" />
-        <p className="m-0 text-[13.5px] leading-snug text-[#9a9a9a]">{shortDescription(problem.description)}</p>
+        <div className="h-px w-full" style={{ background: "var(--dojo-hairline)" }} />
+        <p className="m-0 text-[13.5px] leading-snug text-dojo-textDim">{shortDescription(problem.description)}</p>
       </div>
 
       <div className="mt-1 flex items-center justify-between gap-4">
         <div className="flex flex-wrap items-center gap-1.5">
           {problem.tags.map((t) => (
-            <span key={t} className="rounded-md bg-white/[0.05] px-2 py-[3px] text-[10.5px] text-[#a3a3a3]">
+            <span
+              key={t}
+              className="rounded-md px-2 py-[3px] text-[10.5px] text-dojo-textDim"
+              style={{ background: "var(--dojo-hairline)" }}
+            >
               {t}
             </span>
           ))}
@@ -349,7 +353,7 @@ function ProblemCard({ problem, solved, index }: { problem: Problem; solved: boo
         <div className="flex flex-none items-center gap-2.5">
           <span
             className="flex items-center gap-1.5 text-[11.5px] font-medium"
-            style={{ color: solved ? "#6ee7a0" : "#b0b0b0" }}
+            style={{ color: solved ? "var(--dojo-green-bright)" : "var(--dojo-text-dim)" }}
           >
             {solved ? (
               <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
@@ -374,7 +378,7 @@ function ProblemCard({ problem, solved, index }: { problem: Problem; solved: boo
             strokeWidth="2"
             strokeLinecap="round"
             strokeLinejoin="round"
-            className="text-[#4a4a4a] transition-all duration-200 group-hover:translate-x-1 group-hover:text-dojo-accent"
+            className="text-dojo-textSubtle transition-all duration-200 group-hover:translate-x-1 group-hover:text-dojo-accent"
           >
             <path d="m9 18 6-6-6-6" />
           </svg>

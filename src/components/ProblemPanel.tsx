@@ -15,11 +15,11 @@ const STATUS_LABEL: Record<SubmissionStatus, string> = {
 };
 
 const STATUS_COLOR: Record<SubmissionStatus, string> = {
-  accepted: "#6ee7a0",
-  wrong_answer: "#ff8585",
-  compile_error: "#ff8585",
-  runtime_error: "#ff8585",
-  pending: "#b3b3b3",
+  accepted: "var(--dojo-green-bright)",
+  wrong_answer: "var(--dojo-red)",
+  compile_error: "var(--dojo-red)",
+  runtime_error: "var(--dojo-red)",
+  pending: "var(--dojo-text-dim)",
 };
 
 function relativeTime(iso: string): string {
@@ -49,7 +49,7 @@ export default function ProblemPanel({ problem, sampleTests, history = [], profi
         <div className="flex flex-col gap-3">
           <div className="flex items-center gap-2.5 font-mono text-[11px] text-dojo-textDim">
             <span>PROBLEMA</span>
-            <span className="text-[#4a4a4a]">/</span>
+            <span className="text-dojo-textSubtle">/</span>
             <span>{problem.tags[0]?.toUpperCase() ?? "GERAL"}</span>
           </div>
           <h1 className="m-0 text-[26px] font-semibold leading-[1.22] tracking-[-0.02em] text-dojo-textBright">
@@ -66,12 +66,12 @@ export default function ProblemPanel({ problem, sampleTests, history = [], profi
             {problem.tags.map((tag) => (
               <span
                 key={tag}
-                className="rounded-full border border-dojo-border2 bg-[#171717] px-2.5 py-[3px] text-[11px] text-[#b3b3b3]"
+                className="rounded-full border border-dojo-border2 bg-dojo-surfaceRaised px-2.5 py-[3px] text-[11px] text-dojo-textDim"
               >
                 {tag}
               </span>
             ))}
-            <span className="rounded-full border border-dojo-border2 bg-[#171717] px-2.5 py-[3px] text-[11px] text-[#b3b3b3]">
+            <span className="rounded-full border border-dojo-border2 bg-dojo-surfaceRaised px-2.5 py-[3px] text-[11px] text-dojo-textDim">
               {problem.time_limit_ms / 1000}s · {problem.memory_limit_mb}MB
             </span>
           </div>
@@ -79,7 +79,7 @@ export default function ProblemPanel({ problem, sampleTests, history = [], profi
 
         <div className="h-px bg-dojo-border" />
 
-        <div className="flex flex-col gap-3.5 text-sm leading-[1.68] text-[#dcdcdc]">
+        <div className="flex flex-col gap-3.5 text-sm leading-[1.68] text-dojo-text">
           {problem.description.split("\n\n").map((p, i) => (
             <p key={i} className="m-0">
               {p}
@@ -89,8 +89,8 @@ export default function ProblemPanel({ problem, sampleTests, history = [], profi
 
         <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
           {sampleTests.map((tc) => (
-            <div key={tc.id} className="overflow-hidden rounded-lg border border-dojo-border2 bg-[#0d0d0d]">
-              <div className="border-b border-dojo-border2 bg-[#171717] px-3 py-2 text-[11px] font-semibold tracking-[0.04em] text-[#b3b3b3]">
+            <div key={tc.id} className="overflow-hidden rounded-lg border border-dojo-border2 bg-dojo-surfaceSunken">
+              <div className="border-b border-dojo-border2 bg-dojo-surfaceRaised px-3 py-2 text-[11px] font-semibold tracking-[0.04em] text-dojo-textDim">
                 ENTRADA
               </div>
               <pre className="m-0 p-3 font-mono text-[12.5px] leading-[1.7] text-dojo-text">
@@ -99,11 +99,11 @@ export default function ProblemPanel({ problem, sampleTests, history = [], profi
             </div>
           ))}
           {sampleTests.map((tc) => (
-            <div key={tc.id + "-out"} className="overflow-hidden rounded-lg border border-dojo-border2 bg-[#0d0d0d]">
-              <div className="border-b border-dojo-border2 bg-[#171717] px-3 py-2 text-[11px] font-semibold tracking-[0.04em] text-[#b3b3b3]">
+            <div key={tc.id + "-out"} className="overflow-hidden rounded-lg border border-dojo-border2 bg-dojo-surfaceSunken">
+              <div className="border-b border-dojo-border2 bg-dojo-surfaceRaised px-3 py-2 text-[11px] font-semibold tracking-[0.04em] text-dojo-textDim">
                 SAÍDA
               </div>
-              <pre className="m-0 p-3 font-mono text-[12.5px] leading-[1.7] text-[#b5cea8]">
+              <pre className="m-0 p-3 font-mono text-[12.5px] leading-[1.7]" style={{ color: "var(--dojo-code-output)" }}>
                 {tc.expected_output}
               </pre>
             </div>
@@ -122,21 +122,21 @@ export default function ProblemPanel({ problem, sampleTests, history = [], profi
                 return (
                   <div
                     key={h.id}
-                    className="flex items-center gap-2.5 border-b border-dojo-border2 bg-[#0d0d0d] px-3 py-2 text-[12px] last:border-b-0"
+                    className="flex items-center gap-2.5 border-b border-dojo-border2 bg-dojo-surfaceSunken px-3 py-2 text-[12px] last:border-b-0"
                   >
                     <div
                       className="flex h-5 w-5 flex-none items-center justify-center rounded-full text-[8px] font-semibold text-white"
-                      style={{ background: profile?.avatar_color ?? "#3a3a3a" }}
+                      style={{ background: profile?.avatar_color ?? "var(--dojo-border2)" }}
                     >
                       {profile?.avatar_initials ?? "?"}
                     </div>
-                    <span className="min-w-0 flex-1 truncate text-[#c5c5c5]">
+                    <span className="min-w-0 flex-1 truncate text-dojo-text">
                       {profile?.display_name ?? "alguém"}
                     </span>
                     <span className="flex-none font-medium" style={{ color: STATUS_COLOR[h.status] }}>
                       {STATUS_LABEL[h.status]}
                     </span>
-                    <span className="flex-none text-[11px] text-[#7a7a7a]">{relativeTime(h.created_at)}</span>
+                    <span className="flex-none text-[11px] text-dojo-textFaint">{relativeTime(h.created_at)}</span>
                   </div>
                 );
               })}
