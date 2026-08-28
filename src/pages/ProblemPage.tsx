@@ -143,14 +143,14 @@ export default function ProblemPage({ session }: ProblemPageProps) {
     <div className="flex h-screen flex-col overflow-hidden bg-dojo-bg font-sans text-dojo-text">
       <Header profiles={profiles} subtitle={problem.tags.join(" · ")} />
 
-      <div className="flex flex-none items-center justify-between gap-3 border-b border-dojo-border bg-dojo-panel px-4 py-2">
+      <div className="flex flex-none flex-col gap-2 border-b border-dojo-border bg-dojo-panel px-4 py-2 sm:flex-row sm:items-center sm:justify-between">
         <div className="flex items-center gap-2">
           <div className="flex">
             {presentProfiles.map((p) => (
               <div
                 key={p.id}
                 title={p.id === room.pilotId ? `${p.display_name} (piloto)` : p.display_name}
-                className="relative -ml-1.5 flex h-6 w-6 items-center justify-center rounded-full border-2 border-dojo-panel text-[9px] font-semibold first:ml-0"
+                className="relative -ml-1.5 flex h-6 w-6 flex-none items-center justify-center rounded-full border-2 border-dojo-panel text-[9px] font-semibold first:ml-0"
                 style={{ background: p.avatar_color, color: "#ffffff" }}
               >
                 {p.avatar_initials}
@@ -170,7 +170,7 @@ export default function ProblemPage({ session }: ProblemPageProps) {
         {room.isPilot ? (
           <span className="flex items-center gap-1.5 text-[12px] font-medium text-dojo-accent">🚗 Você é o piloto — pode editar e executar</span>
         ) : (
-          <div className="flex items-center gap-2.5">
+          <div className="flex flex-wrap items-center gap-2.5">
             <span className="text-[12px] text-dojo-textDim">
               {pilotProfile ? `${pilotProfile.display_name} é o piloto` : "aguardando piloto"} — você está no modo copiloto
             </span>
@@ -184,7 +184,7 @@ export default function ProblemPage({ session }: ProblemPageProps) {
         )}
       </div>
 
-      <div className="grid min-h-0 flex-1 grid-cols-[minmax(360px,42%)_1fr]">
+      <div className="grid min-h-0 flex-1 grid-cols-1 overflow-y-auto md:grid-cols-[minmax(360px,42%)_1fr] md:overflow-hidden">
         <ProblemPanel problem={problem} sampleTests={sampleTests} />
 
         <section className="flex min-h-0 flex-col bg-dojo-bg">

@@ -12,22 +12,22 @@ export default function Header({ profiles, subtitle, backTo }: HeaderProps) {
   const onPlacar = location.pathname === "/placar";
 
   return (
-    <header className="flex h-11 flex-none items-center justify-between gap-4 border-b border-dojo-border bg-dojo-panel px-4">
-      <div className="flex items-center gap-2.5">
-        <Link to={backTo ?? "/"} className="flex items-center gap-2.5 hover:opacity-90">
-          <div className="flex h-6 w-6 items-center justify-center rounded-md bg-dojo-accent font-mono text-[11px] font-bold text-white">
+    <header className="flex h-11 flex-none items-center justify-between gap-3 border-b border-dojo-border bg-dojo-panel px-3 sm:px-4">
+      <div className="flex min-w-0 items-center gap-2.5">
+        <Link to={backTo ?? "/"} className="flex flex-none items-center gap-2.5 hover:opacity-90">
+          <div className="flex h-6 w-6 flex-none items-center justify-center rounded-md bg-dojo-accent font-mono text-[11px] font-bold text-white">
             C+
           </div>
-          <span className="text-sm font-semibold tracking-tight text-dojo-textBright">
+          <span className="hidden text-sm font-semibold tracking-tight text-dojo-textBright sm:inline">
             C++ Dojo
           </span>
         </Link>
-        <span className="ml-1 border-l border-dojo-border2 pl-2.5 text-[11px] text-dojo-textDim">
+        <span className="truncate border-l border-dojo-border2 pl-2.5 text-[11px] text-dojo-textDim">
           {subtitle}
         </span>
       </div>
 
-      <div className="flex items-center gap-3.5">
+      <div className="flex flex-none items-center gap-2.5 sm:gap-3.5">
         <Link
           to="/placar"
           className="flex items-center gap-1.5 text-[11.5px] font-medium transition-colors"
@@ -40,9 +40,9 @@ export default function Header({ profiles, subtitle, backTo }: HeaderProps) {
             <path d="M7 6H4a2 2 0 0 0 0 4h1" />
             <path d="M17 6h3a2 2 0 0 1 0 4h-1" />
           </svg>
-          Placar
+          <span className="hidden sm:inline">Placar</span>
         </Link>
-        <div className="flex items-center gap-1.5 text-[11px] text-dojo-textDim">
+        <div className="hidden items-center gap-1.5 text-[11px] text-dojo-textDim md:flex">
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
             <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"></path>
             <circle cx="9" cy="7" r="4"></circle>
@@ -51,7 +51,7 @@ export default function Header({ profiles, subtitle, backTo }: HeaderProps) {
           </svg>
           <span>{profiles.length} no dojo</span>
         </div>
-        <div className="flex">
+        <div className="hidden sm:flex">
           {profiles.map((p) => (
             <div
               key={p.id}

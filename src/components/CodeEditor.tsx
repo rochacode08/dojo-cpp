@@ -93,7 +93,7 @@ export default function CodeEditor({ code, onChange, readOnly }: CodeEditorProps
   }, [code]);
 
   return (
-    <div className="flex min-h-0 flex-1 flex-col bg-dojo-bg">
+    <div className="flex h-[50vh] flex-none flex-col bg-dojo-bg md:h-auto md:min-h-0 md:flex-1">
       <div className="flex h-[38px] flex-none items-stretch justify-between border-b border-dojo-border bg-dojo-panel">
         <div className="flex items-center gap-2 border-r border-dojo-border bg-dojo-bg px-3.5 text-[12.5px] text-dojo-textBright" style={{ borderTop: "1px solid #2b95e0" }}>
           <span className="font-mono text-[11px] text-[#66c2e0]">C++</span>

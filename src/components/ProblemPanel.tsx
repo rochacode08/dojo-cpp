@@ -15,8 +15,8 @@ export default function ProblemPanel({ problem, sampleTests }: ProblemPanelProps
   const [diffBg, diffFg, diffBorder] = DIFFICULTY_PALETTE[problem.difficulty];
 
   return (
-    <section className="min-h-0 overflow-y-auto border-r border-dojo-border bg-dojo-bg">
-      <div className="flex max-w-[640px] flex-col gap-[22px] px-8 pb-10 pt-7">
+    <section className="min-h-0 overflow-y-auto border-b border-dojo-border bg-dojo-bg md:border-b-0 md:border-r">
+      <div className="flex max-w-[640px] flex-col gap-[22px] px-4 pb-10 pt-6 sm:px-8 sm:pt-7">
         <div className="flex flex-col gap-3">
           <div className="flex items-center gap-2.5 font-mono text-[11px] text-dojo-textDim">
             <span>PROBLEMA</span>
