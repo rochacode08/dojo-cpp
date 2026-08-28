@@ -2,6 +2,32 @@ import type { TestResultRow } from "../lib/types";
 
 type Phase = "idle" | "running" | "result";
 
+const GCC_LOCATION = /^([^:]+):(\d+):(\d+):\s*(error|warning|note):/;
+
+function formatCompilerOutput(text: string) {
+  return text.split("\n").map((line, i) => {
+    const m = line.match(GCC_LOCATION);
+    if (!m) return <div key={i}>{line || " "}</div>;
+    const [, file, ln, col, kind] = m;
+    const rest = line.slice(m[0].length);
+    const kindColor = kind === "error" ? "#ff8585" : kind === "warning" ? "#f0c674" : "#8a9bb3";
+    return (
+      <div key={i}>
+        <span className="text-[#7a8ea3]">{file}</span>
+        <span className="text-[#5a5a5a]">:</span>
+        <span className="text-[#c8b98a]">{ln}</span>
+        <span className="text-[#5a5a5a]">:</span>
+        <span className="text-[#c8b98a]">{col}</span>
+        <span className="text-[#5a5a5a]">: </span>
+        <span className="font-semibold" style={{ color: kindColor }}>
+          {kind}:
+        </span>
+        {rest}
+      </div>
+    );
+  });
+}
+
 interface TestsPanelProps {
   phase: Phase;
   rows: TestResultRow[];
@@ -137,7 +163,12 @@ export default function TestsPanel({ phase, rows, height, canRun, onRun, onReset
         </div>
 
         <div className="min-h-0 flex-1 overflow-y-auto px-3.5 pb-4 pt-2.5 font-mono text-[12.5px]">
-          {rows.map((row, i) => (
+          {rows.map((row, i) => {
+            const firstCompileErrorIndex = rows.findIndex((r) => r.status === "ERRO DE COMPILAÇÃO");
+            const isRepeatedCompileError =
+              row.status === "ERRO DE COMPILAÇÃO" && firstCompileErrorIndex !== i;
+
+            return (
             <div key={i} className="animate-dojo-fade border-b border-[#242424] py-[7px]">
               <div className="flex items-center gap-2.5">
                 <span className="flex w-3.5 items-center" style={{ color: row.passed ? "#6ee7a0" : "#ff8585" }}>
@@ -156,8 +187,23 @@ export default function TestsPanel({ phase, rows, height, canRun, onRun, onReset
                 </span>
                 <span className="ml-auto text-[#7a7a7a]">{row.time}</span>
               </div>
-              {!row.passed && (
-                <div className="ml-6 mt-1.5 rounded-r border-l-2 border-[#d64545] bg-[#241010] px-2.5 py-2 leading-[1.65] text-[#e0b0b0]">
+              {!row.passed && row.status === "ERRO DE COMPILAÇÃO" && (
+                <div className="ml-6 mt-1.5 overflow-x-auto whitespace-pre rounded-r border-l-2 border-[#d64545] bg-[#241010] px-2.5 py-2 leading-[1.65] text-[#e0b0b0]">
+                  {isRepeatedCompileError
+                    ? "(mesmo erro de compilação do caso #1 acima — corrija-o para rodar os demais)"
+                    : formatCompilerOutput(row.received ?? "")}
+                </div>
+              )}
+              {!row.passed && row.status === "RUNTIME ERROR" && (
+                <div className="ml-6 mt-1.5 whitespace-pre-wrap break-words rounded-r border-l-2 border-[#d64545] bg-[#241010] px-2.5 py-2 leading-[1.65] text-[#e0b0b0]">
+                  <div>entrada: {row.input}</div>
+                  <div>
+                    erro em tempo de execução: <span className="text-[#ff9d8a]">{row.received}</span>
+                  </div>
+                </div>
+              )}
+              {!row.passed && row.status !== "ERRO DE COMPILAÇÃO" && row.status !== "RUNTIME ERROR" && (
+                <div className="ml-6 mt-1.5 whitespace-pre-wrap break-words rounded-r border-l-2 border-[#d64545] bg-[#241010] px-2.5 py-2 leading-[1.65] text-[#e0b0b0]">
                   <div>entrada:   {row.input}</div>
                   <div>
                     esperado:  <span className="text-[#c8e0ba]">{row.expected}</span>
@@ -168,7 +214,8 @@ export default function TestsPanel({ phase, rows, height, canRun, onRun, onReset
                 </div>
               )}
             </div>
-          ))}
+            );
+          })}
           <div className="pt-2.5 text-[#7a7a7a]">{footerLine}</div>
         </div>
       </div>
