@@ -125,7 +125,7 @@ export default function TestsPanel({ phase, rows, height, canRun, onRun, onReset
           <button
             onClick={onRun}
             disabled={running || !canRun}
-            title={canRun ? undefined : "Só o piloto pode executar"}
+            title={canRun ? "Atalho: Ctrl+Enter" : "Só o piloto pode executar"}
             className="inline-flex items-center gap-2 rounded-md px-4 py-2 font-sans text-[13px] font-semibold text-white transition hover:brightness-110 disabled:cursor-not-allowed disabled:hover:brightness-100"
             style={{
               background: running || !canRun ? "var(--dojo-surface-raised)" : "#2ea043",
@@ -136,6 +136,11 @@ export default function TestsPanel({ phase, rows, height, canRun, onRun, onReset
           >
             {running ? <Spinner /> : <Play />}
             {running ? "Executando..." : "Executar e Testar"}
+            {!running && canRun && (
+              <span className="ml-0.5 rounded border border-white/20 px-1.5 py-[1px] font-mono text-[10px] font-normal opacity-70">
+                Ctrl+Enter
+              </span>
+            )}
           </button>
         </div>
       </div>

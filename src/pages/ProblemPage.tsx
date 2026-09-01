@@ -109,6 +109,17 @@ export default function ProblemPage({ session }: ProblemPageProps) {
     fetchHistory(problem.id);
   }
 
+  useEffect(() => {
+    function handleKeyDown(e: KeyboardEvent) {
+      if ((e.ctrlKey || e.metaKey) && e.key === "Enter") {
+        e.preventDefault();
+        if (room.isPilot && room.state.phase !== "running") handleRun();
+      }
+    }
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  });
+
   function handleReset() {
     if (problem && room.isPilot) room.resetRoom(problem.starter_code);
   }

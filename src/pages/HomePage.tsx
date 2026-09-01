@@ -13,8 +13,22 @@ const DIFFICULTY_COLOR: Record<Difficulty, string> = {
   Difícil: "var(--dojo-red)",
 };
 
+const DIFFICULTY_RANK: Record<Difficulty, number> = {
+  Fácil: 0,
+  Médio: 1,
+  Difícil: 2,
+};
+
 type StatusFilter = "todos" | "resolvidos" | "pendentes";
 type ViewMode = "grid" | "list";
+type SortOption = "padrao" | "alfabetica" | "dificuldade" | "pendentes-primeiro";
+
+const SORT_LABEL: Record<SortOption, string> = {
+  padrao: "Padrão",
+  alfabetica: "Ordem alfabética",
+  dificuldade: "Dificuldade (fácil → difícil)",
+  "pendentes-primeiro": "Pendentes primeiro",
+};
 
 interface HomePageProps {
   session: Session;
@@ -39,6 +53,7 @@ export default function HomePage({ session }: HomePageProps) {
   const [viewMode, setViewMode] = useState<ViewMode>(
     () => (localStorage.getItem("dojo-view-mode") as ViewMode) || "grid",
   );
+  const [sortBy, setSortBy] = useState<SortOption>("padrao");
 
   useEffect(() => {
     localStorage.setItem("dojo-view-mode", viewMode);
@@ -115,7 +130,7 @@ export default function HomePage({ session }: HomePageProps) {
 
   const filtered = useMemo(() => {
     const q = search.trim().toLowerCase();
-    return problems.filter((p) => {
+    const result = problems.filter((p) => {
       if (q && !p.title.toLowerCase().includes(q)) return false;
       if (difficulties.size > 0 && !difficulties.has(p.difficulty)) return false;
       if (tags.size > 0 && !p.tags.some((t) => tags.has(t))) return false;
@@ -124,7 +139,22 @@ export default function HomePage({ session }: HomePageProps) {
       if (status === "pendentes" && solved) return false;
       return true;
     });
-  }, [problems, search, difficulties, tags, status, solvedIds]);
+
+    switch (sortBy) {
+      case "alfabetica":
+        return [...result].sort((a, b) => a.title.localeCompare(b.title, "pt-BR"));
+      case "dificuldade":
+        return [...result].sort((a, b) => DIFFICULTY_RANK[a.difficulty] - DIFFICULTY_RANK[b.difficulty]);
+      case "pendentes-primeiro":
+        return [...result].sort((a, b) => {
+          const aSolved = solvedIds.has(a.id) ? 1 : 0;
+          const bSolved = solvedIds.has(b.id) ? 1 : 0;
+          return aSolved - bSolved;
+        });
+      default:
+        return result;
+    }
+  }, [problems, search, difficulties, tags, status, solvedIds, sortBy]);
 
   const pct = problems.length > 0 ? Math.round((solvedIds.size / problems.length) * 100) : 0;
 
@@ -264,7 +294,10 @@ export default function HomePage({ session }: HomePageProps) {
               <span className="text-[11px] font-semibold uppercase tracking-[0.1em] text-dojo-textDim">
                 {filtered.length} {filtered.length === 1 ? "desafio" : "desafios"}
               </span>
-              <ViewToggle mode={viewMode} onChange={setViewMode} />
+              <div className="flex items-center gap-2.5">
+                <SortSelect value={sortBy} onChange={setSortBy} />
+                <ViewToggle mode={viewMode} onChange={setViewMode} />
+              </div>
             </div>
 
             {filtered.length === 0 ? (
@@ -331,6 +364,51 @@ function FilterChip({
     >
       {children}
     </button>
+  );
+}
+
+function SortSelect({ value, onChange }: { value: SortOption; onChange: (s: SortOption) => void }) {
+  return (
+    <div className="relative flex items-center">
+      <svg
+        width="13"
+        height="13"
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        strokeWidth="2"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        className="pointer-events-none absolute left-2.5 text-dojo-textDim"
+      >
+        <path d="M3 6h18M6 12h12M10 18h4" />
+      </svg>
+      <select
+        value={value}
+        onChange={(e) => onChange(e.target.value as SortOption)}
+        className="cursor-pointer appearance-none rounded-lg py-1.5 pl-7 pr-6 text-[12px] font-medium text-dojo-textDim outline-none transition hover:text-dojo-textBright"
+        style={{ background: "var(--dojo-surface-sunken)" }}
+      >
+        {(Object.keys(SORT_LABEL) as SortOption[]).map((opt) => (
+          <option key={opt} value={opt}>
+            {SORT_LABEL[opt]}
+          </option>
+        ))}
+      </select>
+      <svg
+        width="12"
+        height="12"
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        strokeWidth="2"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        className="pointer-events-none absolute right-2 text-dojo-textDim"
+      >
+        <path d="m6 9 6 6 6-6" />
+      </svg>
+    </div>
   );
 }
 
