@@ -6,6 +6,7 @@ import LoginPage from "./pages/LoginPage";
 import HomePage from "./pages/HomePage";
 import ProblemPage from "./pages/ProblemPage";
 import PlacarPage from "./pages/PlacarPage";
+import SubmissionToasts from "./components/SubmissionToasts";
 
 export default function App() {
   const [session, setSession] = useState<Session | null>(null);
@@ -33,23 +34,26 @@ export default function App() {
   }
 
   return (
-    <Routes>
-      <Route
-        path="/login"
-        element={session ? <Navigate to="/" replace /> : <LoginPage />}
-      />
-      <Route
-        path="/"
-        element={session ? <HomePage session={session} /> : <Navigate to="/login" replace />}
-      />
-      <Route
-        path="/problema/:slug"
-        element={session ? <ProblemPage session={session} /> : <Navigate to="/login" replace />}
-      />
-      <Route
-        path="/placar"
-        element={session ? <PlacarPage session={session} /> : <Navigate to="/login" replace />}
-      />
-    </Routes>
+    <>
+      {session && <SubmissionToasts session={session} />}
+      <Routes>
+        <Route
+          path="/login"
+          element={session ? <Navigate to="/" replace /> : <LoginPage />}
+        />
+        <Route
+          path="/"
+          element={session ? <HomePage session={session} /> : <Navigate to="/login" replace />}
+        />
+        <Route
+          path="/problema/:slug"
+          element={session ? <ProblemPage session={session} /> : <Navigate to="/login" replace />}
+        />
+        <Route
+          path="/placar"
+          element={session ? <PlacarPage session={session} /> : <Navigate to="/login" replace />}
+        />
+      </Routes>
+    </>
   );
 }

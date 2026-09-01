@@ -42,10 +42,20 @@ export default {
           from: { opacity: "0", transform: "translateY(3px)" },
           to: { opacity: "1", transform: "none" },
         },
+        dojoConfetti: {
+          "0%": { transform: "translateY(-10px) rotate(0deg)", opacity: "1" },
+          "100%": { transform: "translateY(100vh) rotate(720deg)", opacity: "0" },
+        },
+        dojoToastIn: {
+          from: { opacity: "0", transform: "translateX(16px)" },
+          to: { opacity: "1", transform: "none" },
+        },
       },
       animation: {
         "dojo-spin": "dojoSpin 700ms linear infinite",
         "dojo-fade": "dojoFade 160ms ease-out",
+        "dojo-confetti": "dojoConfetti 2s ease-in forwards",
+        "dojo-toast-in": "dojoToastIn 200ms ease-out",
       },
     },
   },

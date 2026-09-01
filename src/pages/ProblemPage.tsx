@@ -8,6 +8,7 @@ import Header from "../components/Header";
 import ProblemPanel from "../components/ProblemPanel";
 import CodeEditor from "../components/CodeEditor";
 import TestsPanel from "../components/TestsPanel";
+import Confetti from "../components/Confetti";
 
 interface ProblemPageProps {
   session: Session;
@@ -21,7 +22,10 @@ export default function ProblemPage({ session }: ProblemPageProps) {
   const [history, setHistory] = useState<SubmissionHistoryEntry[]>([]);
   const [loadError, setLoadError] = useState<string | null>(null);
   const [testsHeight, setTestsHeight] = useState(268);
+  const [celebrating, setCelebrating] = useState(false);
+  const [celebrateKey, setCelebrateKey] = useState(0);
   const draggingRef = useRef(false);
+  const celebrateTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const room = useCollabRoom(problem?.id ?? null, session.user.id, problem?.starter_code ?? "");
 
@@ -107,7 +111,24 @@ export default function ProblemPage({ session }: ProblemPageProps) {
 
     room.setResult(data.results);
     fetchHistory(problem.id);
+
+    if (data.results.length > 0 && data.results.every((r) => r.passed)) {
+      celebrate();
+    }
   }
+
+  function celebrate() {
+    if (celebrateTimeoutRef.current) clearTimeout(celebrateTimeoutRef.current);
+    setCelebrateKey((k) => k + 1);
+    setCelebrating(true);
+    celebrateTimeoutRef.current = setTimeout(() => setCelebrating(false), 2800);
+  }
+
+  useEffect(() => {
+    return () => {
+      if (celebrateTimeoutRef.current) clearTimeout(celebrateTimeoutRef.current);
+    };
+  }, []);
 
   useEffect(() => {
     function handleKeyDown(e: KeyboardEvent) {
@@ -168,6 +189,7 @@ export default function ProblemPage({ session }: ProblemPageProps) {
 
   return (
     <div className="flex h-screen flex-col overflow-hidden bg-dojo-bg font-sans text-dojo-text">
+      {celebrating && <Confetti key={celebrateKey} />}
       <Header profiles={profiles} subtitle={problem.tags.join(" · ")} />
 
       <div className="flex flex-none flex-col gap-2 border-b border-dojo-border bg-dojo-panel px-4 py-2 sm:flex-row sm:items-center sm:justify-between">
