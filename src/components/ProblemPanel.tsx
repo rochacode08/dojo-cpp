@@ -1,3 +1,4 @@
+import { useState } from "react";
 import type { Difficulty, Problem, Profile, SubmissionHistoryEntry, SubmissionStatus, TestCase } from "../lib/types";
 
 const DIFFICULTY_PALETTE: Record<Difficulty, [string, string, string]> = {
@@ -110,6 +111,8 @@ export default function ProblemPanel({ problem, sampleTests, history = [], profi
           ))}
         </div>
 
+        {problem.hints.length > 0 && <HintsBox key={problem.id} hints={problem.hints} />}
+
         {history.length > 0 && (
           <div className="flex flex-col gap-2.5">
             <div className="h-px bg-dojo-border" />
@@ -145,5 +148,54 @@ export default function ProblemPanel({ problem, sampleTests, history = [], profi
         )}
       </div>
     </section>
+  );
+}
+
+function LightbulbIcon() {
+  return (
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M9 18h6" />
+      <path d="M10 22h4" />
+      <path d="M12 2a7 7 0 0 0-4 12.7V17h8v-2.3A7 7 0 0 0 12 2Z" />
+    </svg>
+  );
+}
+
+function HintsBox({ hints }: { hints: string[] }) {
+  const [revealed, setRevealed] = useState(0);
+  const allRevealed = revealed >= hints.length;
+
+  return (
+    <div className="flex flex-col gap-2.5">
+      <div className="h-px bg-dojo-border" />
+      <span className="flex items-center gap-1.5 text-[11px] font-semibold uppercase tracking-[0.06em] text-dojo-textDim">
+        <LightbulbIcon />
+        Dicas
+      </span>
+
+      {revealed > 0 && (
+        <ol className="m-0 flex list-none flex-col gap-2 p-0">
+          {hints.slice(0, revealed).map((hint, i) => (
+            <li
+              key={i}
+              className="animate-dojo-fade flex gap-2.5 rounded-lg border border-dojo-border2 bg-dojo-surfaceSunken px-3 py-2.5 text-[13px] leading-[1.6] text-dojo-text"
+            >
+              <span className="flex-none font-mono text-[12px] font-semibold text-dojo-accent">{i + 1}.</span>
+              <span>{hint}</span>
+            </li>
+          ))}
+        </ol>
+      )}
+
+      {!allRevealed && (
+        <button
+          onClick={() => setRevealed((r) => r + 1)}
+          className="flex items-center justify-center gap-1.5 self-start rounded-lg border border-dojo-border2 bg-dojo-surfaceRaised px-3.5 py-2 text-[12.5px] font-medium text-dojo-textDim transition hover:bg-dojo-surfaceHover hover:text-dojo-textBright"
+        >
+          <LightbulbIcon />
+          Mostrar dica {revealed + 1} de {hints.length}
+        </button>
+      )}
+    </div>
   );
 }

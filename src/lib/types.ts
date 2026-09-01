@@ -18,6 +18,7 @@ export interface Problem {
   time_limit_ms: number;
   memory_limit_mb: number;
   order_index: number;
+  hints: string[];
 }
 
 export interface TestCase {
