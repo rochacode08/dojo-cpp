@@ -32,8 +32,8 @@ export default function HomePage({ session }: HomePageProps) {
   const [loadError, setLoadError] = useState<string | null>(null);
 
   const [search, setSearch] = useState("");
-  const [difficulty, setDifficulty] = useState<Difficulty | "todas">("todas");
-  const [tag, setTag] = useState<string | "todas">("todas");
+  const [difficulties, setDifficulties] = useState<Set<Difficulty>>(new Set());
+  const [tags, setTags] = useState<Set<string>>(new Set());
   const [status, setStatus] = useState<StatusFilter>("todos");
 
   useEffect(() => {
@@ -77,28 +77,46 @@ export default function HomePage({ session }: HomePageProps) {
   }, [problems]);
 
   const activeFilterCount =
-    (search !== "" ? 1 : 0) + (difficulty !== "todas" ? 1 : 0) + (tag !== "todas" ? 1 : 0) + (status !== "todos" ? 1 : 0);
+    (search !== "" ? 1 : 0) + difficulties.size + tags.size + (status !== "todos" ? 1 : 0);
   const filtersActive = activeFilterCount > 0;
 
   function clearFilters() {
     setSearch("");
-    setDifficulty("todas");
-    setTag("todas");
+    setDifficulties(new Set());
+    setTags(new Set());
     setStatus("todos");
+  }
+
+  function toggleDifficulty(d: Difficulty) {
+    setDifficulties((prev) => {
+      const next = new Set(prev);
+      if (next.has(d)) next.delete(d);
+      else next.add(d);
+      return next;
+    });
+  }
+
+  function toggleTag(t: string) {
+    setTags((prev) => {
+      const next = new Set(prev);
+      if (next.has(t)) next.delete(t);
+      else next.add(t);
+      return next;
+    });
   }
 
   const filtered = useMemo(() => {
     const q = search.trim().toLowerCase();
     return problems.filter((p) => {
       if (q && !p.title.toLowerCase().includes(q)) return false;
-      if (difficulty !== "todas" && p.difficulty !== difficulty) return false;
-      if (tag !== "todas" && !p.tags.includes(tag)) return false;
+      if (difficulties.size > 0 && !difficulties.has(p.difficulty)) return false;
+      if (tags.size > 0 && !p.tags.some((t) => tags.has(t))) return false;
       const solved = solvedIds.has(p.id);
       if (status === "resolvidos" && !solved) return false;
       if (status === "pendentes" && solved) return false;
       return true;
     });
-  }, [problems, search, difficulty, tag, status, solvedIds]);
+  }, [problems, search, difficulties, tags, status, solvedIds]);
 
   const pct = problems.length > 0 ? Math.round((solvedIds.size / problems.length) * 100) : 0;
 
@@ -115,7 +133,7 @@ export default function HomePage({ session }: HomePageProps) {
       <Header profiles={profiles} subtitle="Problemas" />
 
       <div className="min-h-0 flex-1 overflow-y-auto">
-        <div className="mx-auto flex max-w-[960px] flex-col gap-6 px-6 py-10">
+        <div className="mx-auto flex max-w-[1400px] flex-col gap-6 px-6 py-10">
           {/* Hero */}
           <div className="flex flex-col gap-6 sm:flex-row sm:items-end sm:justify-between">
             <div className="flex flex-col gap-2">
@@ -183,22 +201,22 @@ export default function HomePage({ session }: HomePageProps) {
 
             <div className="flex flex-col gap-3">
               <FilterRow label="Nível">
-                <FilterChip active={difficulty === "todas"} onClick={() => setDifficulty("todas")}>
+                <FilterChip active={difficulties.size === 0} onClick={() => setDifficulties(new Set())}>
                   Todos
                 </FilterChip>
                 {DIFFICULTIES.map((d) => (
-                  <FilterChip key={d} active={difficulty === d} onClick={() => setDifficulty(d)}>
+                  <FilterChip key={d} active={difficulties.has(d)} onClick={() => toggleDifficulty(d)}>
                     {d}
                   </FilterChip>
                 ))}
               </FilterRow>
 
               <FilterRow label="Tema">
-                <FilterChip active={tag === "todas"} onClick={() => setTag("todas")}>
+                <FilterChip active={tags.size === 0} onClick={() => setTags(new Set())}>
                   Todos
                 </FilterChip>
                 {allTags.map((t) => (
-                  <FilterChip key={t} active={tag === t} onClick={() => setTag(t)}>
+                  <FilterChip key={t} active={tags.has(t)} onClick={() => toggleTag(t)}>
                     {t}
                   </FilterChip>
                 ))}
@@ -243,7 +261,7 @@ export default function HomePage({ session }: HomePageProps) {
                 Nenhum problema encontrado com esses filtros.
               </div>
             ) : (
-              <div className="flex flex-col gap-4">
+              <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-3">
                 {filtered.map((p, i) => (
                   <ProblemCard key={p.id} index={i + 1} problem={p} solved={solvedIds.has(p.id)} />
                 ))}
@@ -305,7 +323,7 @@ function ProblemCard({ problem, solved, index }: { problem: Problem; solved: boo
   return (
     <Link
       to={`/problema/${problem.slug}`}
-      className="group relative flex flex-col gap-3.5 overflow-hidden rounded-xl bg-dojo-card px-6 py-5 transition-all duration-200 ease-out hover:-translate-y-[3px] hover:bg-dojo-cardHover"
+      className="group relative flex h-full flex-col gap-3.5 overflow-hidden rounded-xl bg-dojo-card px-6 py-5 transition-all duration-200 ease-out hover:-translate-y-[3px] hover:bg-dojo-cardHover"
       style={{ border: "1px solid var(--dojo-hairline)" }}
       onMouseEnter={(e) => {
         e.currentTarget.style.border = "1px solid rgba(43,149,224,0.45)";
@@ -329,15 +347,15 @@ function ProblemCard({ problem, solved, index }: { problem: Problem; solved: boo
         </span>
       </div>
 
-      <div className="flex flex-col gap-2.5">
+      <div className="flex flex-1 flex-col gap-2.5">
         <span className="text-[18px] font-semibold leading-tight text-dojo-textBright">
           {problem.title}
         </span>
         <div className="h-px w-full" style={{ background: "var(--dojo-hairline)" }} />
-        <p className="m-0 text-[13.5px] leading-snug text-dojo-textDim">{shortDescription(problem.description)}</p>
+        <p className="m-0 line-clamp-2 text-[13.5px] leading-snug text-dojo-textDim">{shortDescription(problem.description)}</p>
       </div>
 
-      <div className="mt-1 flex items-center justify-between gap-4">
+      <div className="mt-1 flex flex-wrap items-center justify-between gap-3">
         <div className="flex flex-wrap items-center gap-1.5">
           {problem.tags.map((t) => (
             <span
