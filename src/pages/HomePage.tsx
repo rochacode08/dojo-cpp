@@ -14,6 +14,7 @@ const DIFFICULTY_COLOR: Record<Difficulty, string> = {
 };
 
 type StatusFilter = "todos" | "resolvidos" | "pendentes";
+type ViewMode = "grid" | "list";
 
 interface HomePageProps {
   session: Session;
@@ -35,6 +36,13 @@ export default function HomePage({ session }: HomePageProps) {
   const [difficulties, setDifficulties] = useState<Set<Difficulty>>(new Set());
   const [tags, setTags] = useState<Set<string>>(new Set());
   const [status, setStatus] = useState<StatusFilter>("todos");
+  const [viewMode, setViewMode] = useState<ViewMode>(
+    () => (localStorage.getItem("dojo-view-mode") as ViewMode) || "grid",
+  );
+
+  useEffect(() => {
+    localStorage.setItem("dojo-view-mode", viewMode);
+  }, [viewMode]);
 
   useEffect(() => {
     (async () => {
@@ -252,16 +260,25 @@ export default function HomePage({ session }: HomePageProps) {
 
           {/* Lista */}
           <div className="flex flex-col gap-3">
-            <span className="text-[11px] font-semibold uppercase tracking-[0.1em] text-dojo-textDim">
-              {filtered.length} {filtered.length === 1 ? "desafio" : "desafios"}
-            </span>
+            <div className="flex items-center justify-between">
+              <span className="text-[11px] font-semibold uppercase tracking-[0.1em] text-dojo-textDim">
+                {filtered.length} {filtered.length === 1 ? "desafio" : "desafios"}
+              </span>
+              <ViewToggle mode={viewMode} onChange={setViewMode} />
+            </div>
 
             {filtered.length === 0 ? (
               <div className="rounded-xl bg-dojo-panel px-4 py-12 text-center text-sm text-dojo-textDim">
                 Nenhum problema encontrado com esses filtros.
               </div>
-            ) : (
+            ) : viewMode === "grid" ? (
               <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-3">
+                {filtered.map((p, i) => (
+                  <ProblemCard key={p.id} index={i + 1} problem={p} solved={solvedIds.has(p.id)} compact />
+                ))}
+              </div>
+            ) : (
+              <div className="flex flex-col gap-4">
                 {filtered.map((p, i) => (
                   <ProblemCard key={p.id} index={i + 1} problem={p} solved={solvedIds.has(p.id)} />
                 ))}
@@ -317,13 +334,72 @@ function FilterChip({
   );
 }
 
-function ProblemCard({ problem, solved, index }: { problem: Problem; solved: boolean; index: number }) {
+function ViewToggle({ mode, onChange }: { mode: ViewMode; onChange: (m: ViewMode) => void }) {
+  return (
+    <div className="flex items-center gap-1 rounded-lg p-1" style={{ background: "var(--dojo-surface-sunken)" }}>
+      <ViewToggleButton active={mode === "grid"} onClick={() => onChange("grid")} title="Ver em grade">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+          <rect x="3" y="3" width="7" height="7" rx="1" />
+          <rect x="14" y="3" width="7" height="7" rx="1" />
+          <rect x="3" y="14" width="7" height="7" rx="1" />
+          <rect x="14" y="14" width="7" height="7" rx="1" />
+        </svg>
+      </ViewToggleButton>
+      <ViewToggleButton active={mode === "list"} onClick={() => onChange("list")} title="Ver em lista">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+          <line x1="4" y1="6" x2="20" y2="6" />
+          <line x1="4" y1="12" x2="20" y2="12" />
+          <line x1="4" y1="18" x2="20" y2="18" />
+        </svg>
+      </ViewToggleButton>
+    </div>
+  );
+}
+
+function ViewToggleButton({
+  active,
+  onClick,
+  title,
+  children,
+}: {
+  active: boolean;
+  onClick: () => void;
+  title: string;
+  children: React.ReactNode;
+}) {
+  return (
+    <button
+      onClick={onClick}
+      title={title}
+      className="flex items-center justify-center rounded-md p-1.5 transition"
+      style={
+        active
+          ? { background: "var(--dojo-accent-soft-bg)", color: "var(--dojo-accent)" }
+          : { background: "transparent", color: "var(--dojo-text-dim)" }
+      }
+    >
+      {children}
+    </button>
+  );
+}
+
+function ProblemCard({
+  problem,
+  solved,
+  index,
+  compact,
+}: {
+  problem: Problem;
+  solved: boolean;
+  index: number;
+  compact?: boolean;
+}) {
   const diffColor = DIFFICULTY_COLOR[problem.difficulty];
 
   return (
     <Link
       to={`/problema/${problem.slug}`}
-      className="group relative flex h-full flex-col gap-3.5 overflow-hidden rounded-xl bg-dojo-card px-6 py-5 transition-all duration-200 ease-out hover:-translate-y-[3px] hover:bg-dojo-cardHover"
+      className={`group relative flex flex-col gap-3.5 overflow-hidden rounded-xl bg-dojo-card px-6 py-5 transition-all duration-200 ease-out hover:-translate-y-[3px] hover:bg-dojo-cardHover ${compact ? "h-full" : ""}`}
       style={{ border: "1px solid var(--dojo-hairline)" }}
       onMouseEnter={(e) => {
         e.currentTarget.style.border = "1px solid rgba(43,149,224,0.45)";
