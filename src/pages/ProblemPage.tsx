@@ -14,6 +14,10 @@ interface ProblemPageProps {
   session: Session;
 }
 
+// Cada caso de teste tem até 15s pra responder no backend (ver run-code);
+// esse teto do lado do cliente cobre vários casos em sequência com folga.
+const RUN_TIMEOUT_MS = 90000;
+
 export default function ProblemPage({ session }: ProblemPageProps) {
   const { slug } = useParams<{ slug: string }>();
   const [profiles, setProfiles] = useState<Profile[]>([]);
@@ -90,9 +94,28 @@ export default function ProblemPage({ session }: ProblemPageProps) {
     if (!problem || !room.isPilot) return;
     room.setRunning();
 
-    const { data, error } = await supabase.functions.invoke<RunCodeResponse>("run-code", {
-      body: { problem_id: problem.id, code: room.state.code },
-    });
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), RUN_TIMEOUT_MS);
+
+    let data: RunCodeResponse | null = null;
+    let error: { message: string } | null = null;
+    try {
+      const res = await supabase.functions.invoke<RunCodeResponse>("run-code", {
+        body: { problem_id: problem.id, code: room.state.code },
+        signal: controller.signal,
+      });
+      data = res.data;
+      error = res.error;
+    } catch (err) {
+      const timedOut = err instanceof Error && err.name === "AbortError";
+      error = {
+        message: timedOut
+          ? `sem resposta em ${RUN_TIMEOUT_MS / 1000}s — o compilador público pode estar sobrecarregado, tente de novo`
+          : String(err),
+      };
+    } finally {
+      clearTimeout(timeoutId);
+    }
 
     if (error || !data) {
       room.setResult([

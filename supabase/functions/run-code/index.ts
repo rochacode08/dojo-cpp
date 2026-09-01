@@ -8,6 +8,7 @@ import { createClient } from "jsr:@supabase/supabase-js@2";
 const WANDBOX_URL = "https://wandbox.org/api/compile.json";
 const WANDBOX_COMPILER = "gcc-13.2.0";
 const WANDBOX_OPTIONS = "c++17";
+const WANDBOX_TIMEOUT_MS = 15000;
 
 const CORS_HEADERS = {
   "Access-Control-Allow-Origin": "*",
@@ -72,6 +73,14 @@ Deno.serve(async (req) => {
       results.push(await runOne(code, testCases[i] as TestCase, i));
     }
 
+    // Falha de infraestrutura (timeout ou erro de rede com o compilador
+    // público) não é um julgamento de correção — não grava como submissão,
+    // senão polui o histórico e o placar com uma tentativa que não rodou de
+    // verdade.
+    const hasInfraFailure = results.some(
+      (r) => r.status === "TEMPO ESGOTADO" || r.status === "ERRO INTERNO",
+    );
+
     const passedAll = results.every((r) => r.passed);
     const status = passedAll
       ? "accepted"
@@ -81,13 +90,15 @@ Deno.serve(async (req) => {
           ? "runtime_error"
           : "wrong_answer";
 
-    await db.from("submissions").insert({
-      user_id: userId,
-      problem_id,
-      code,
-      status,
-      results,
-    });
+    if (!hasInfraFailure) {
+      await db.from("submissions").insert({
+        user_id: userId,
+        problem_id,
+        code,
+        status,
+        results,
+      });
+    }
 
     return json({ status, results });
   } catch (err) {
@@ -98,16 +109,38 @@ Deno.serve(async (req) => {
 async function runOne(code: string, tc: TestCase, index: number) {
   const name = `caso #${index + 1}`;
 
-  const res = await fetch(WANDBOX_URL, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({
-      compiler: WANDBOX_COMPILER,
-      code,
-      stdin: tc.input,
-      options: WANDBOX_OPTIONS,
-    }),
-  });
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), WANDBOX_TIMEOUT_MS);
+
+  let res: Response;
+  try {
+    res = await fetch(WANDBOX_URL, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        compiler: WANDBOX_COMPILER,
+        code,
+        stdin: tc.input,
+        options: WANDBOX_OPTIONS,
+      }),
+      signal: controller.signal,
+    });
+  } catch (err) {
+    const timedOut = err instanceof Error && err.name === "AbortError";
+    return {
+      name,
+      passed: false,
+      status: timedOut ? "TEMPO ESGOTADO" : "ERRO INTERNO",
+      time: "",
+      input: tc.input,
+      expected: tc.expected_output,
+      received: timedOut
+        ? `o compilador público (Wandbox) não respondeu em ${WANDBOX_TIMEOUT_MS / 1000}s — tente executar de novo em instantes.`
+        : String(err),
+    };
+  } finally {
+    clearTimeout(timeoutId);
+  }
 
   if (!res.ok) {
     const text = await res.text();

@@ -208,7 +208,17 @@ export default function TestsPanel({ phase, rows, height, canRun, onRun, onReset
                   </div>
                 </div>
               )}
-              {!row.passed && row.status !== "ERRO DE COMPILAÇÃO" && row.status !== "RUNTIME ERROR" && (
+              {!row.passed && (row.status === "TEMPO ESGOTADO" || row.status === "ERRO INTERNO" || row.status === "ERRO") && (
+                <div className="ml-6 mt-1.5 whitespace-pre-wrap break-words rounded-r border-l-2 border-dojo-dangerBorder bg-dojo-dangerBg px-2.5 py-2 leading-[1.65] text-dojo-dangerText">
+                  {row.received}
+                </div>
+              )}
+              {!row.passed &&
+                row.status !== "ERRO DE COMPILAÇÃO" &&
+                row.status !== "RUNTIME ERROR" &&
+                row.status !== "TEMPO ESGOTADO" &&
+                row.status !== "ERRO INTERNO" &&
+                row.status !== "ERRO" && (
                 <div className="ml-6 mt-1.5 whitespace-pre-wrap break-words rounded-r border-l-2 border-dojo-dangerBorder bg-dojo-dangerBg px-2.5 py-2 leading-[1.65] text-dojo-dangerText">
                   <div>entrada:   {row.input}</div>
                   <div>
