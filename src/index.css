@@ -13,9 +13,12 @@
   --dojo-text: #e4e4e4;
   --dojo-text-bright: #f7f7f7;
   --dojo-text-dim: #a3a3a3;
-  --dojo-text-faint: #7a7a7a;
-  --dojo-text-subtle: #5a5a5a;
+  --dojo-text-faint: #909090;
+  --dojo-text-subtle: #8a8a8a;
   --dojo-accent: #2b95e0;
+  /* Cor sólida pra botões com texto branco em cima (o --dojo-accent normal
+     não passa em 4.5:1 com branco — ver auditoria de acessibilidade). */
+  --dojo-accent-solid: #1b6fb0;
   --dojo-green: #2ea043;
   --dojo-green-bright: #6ee7a0;
   --dojo-red: #ff8585;
@@ -51,9 +54,10 @@
   --dojo-text: #24292e;
   --dojo-text-bright: #0d1117;
   --dojo-text-dim: #57606a;
-  --dojo-text-faint: #6e7781;
-  --dojo-text-subtle: #8b929b;
+  --dojo-text-faint: #5f6773;
+  --dojo-text-subtle: #636d7a;
   --dojo-accent: #1b78c4;
+  --dojo-accent-solid: #1b78c4;
   --dojo-green: #1e8e3e;
   --dojo-green-bright: #16793f;
   --dojo-red: #cf3030;

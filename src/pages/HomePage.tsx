@@ -171,7 +171,7 @@ export default function HomePage({ session }: HomePageProps) {
 
   if (loading) {
     return (
-      <div className="animate-dojo-fade flex h-screen flex-col items-center justify-center gap-3 bg-dojo-bg font-sans text-sm text-dojo-textDim">
+      <div role="status" aria-live="polite" className="animate-dojo-fade flex h-screen flex-col items-center justify-center gap-3 bg-dojo-bg font-sans text-sm text-dojo-textDim">
         <Spinner />
         Carregando problemas...
       </div>
@@ -182,7 +182,7 @@ export default function HomePage({ session }: HomePageProps) {
     <div className="flex h-screen flex-col overflow-hidden bg-dojo-bg font-sans text-dojo-text">
       <Header profiles={profiles} subtitle="Problemas" />
 
-      <div className="min-h-0 flex-1 overflow-y-auto">
+      <main className="min-h-0 flex-1 overflow-y-auto">
         <div className="mx-auto flex max-w-[1400px] flex-col gap-6 px-6 py-10">
           {/* Hero */}
           <div className="flex flex-col gap-6 sm:flex-row sm:items-end sm:justify-between">
@@ -211,7 +211,7 @@ export default function HomePage({ session }: HomePageProps) {
           </div>
 
           {loadError && (
-            <div className="rounded-md bg-dojo-dangerBg px-3 py-2 text-[13px] text-dojo-red" style={{ border: "1px solid var(--dojo-red-soft-border)" }}>
+            <div role="alert" className="rounded-md bg-dojo-dangerBg px-3 py-2 text-[13px] text-dojo-red" style={{ border: "1px solid var(--dojo-red-soft-border)" }}>
               Erro ao carregar problemas: {loadError}
             </div>
           )}
@@ -236,6 +236,7 @@ export default function HomePage({ session }: HomePageProps) {
               value={search}
               onChange={(e) => setSearch(e.target.value)}
               placeholder="Buscar por título, tema ou enunciado..."
+              aria-label="Buscar problemas"
               className="w-full rounded-xl bg-dojo-panel py-3.5 pl-11 pr-4 text-[14.5px] text-dojo-text outline-none ring-1 ring-inset ring-white/[0.06] transition focus:ring-2 focus:ring-dojo-accent"
             />
           </div>
@@ -331,7 +332,7 @@ export default function HomePage({ session }: HomePageProps) {
             )}
           </div>
         </div>
-      </div>
+      </main>
 
       <button
         onClick={() => supabase.auth.signOut()}
@@ -366,7 +367,9 @@ function FilterChip({
 }) {
   return (
     <button
+      type="button"
       onClick={onClick}
+      aria-pressed={active}
       className="rounded-full px-3 py-1.5 text-[12px] font-medium transition active:scale-95"
       style={
         active
@@ -398,7 +401,8 @@ function SortSelect({ value, onChange }: { value: SortOption; onChange: (s: Sort
       <select
         value={value}
         onChange={(e) => onChange(e.target.value as SortOption)}
-        className="cursor-pointer appearance-none rounded-lg py-1.5 pl-7 pr-6 text-[12px] font-medium text-dojo-textDim outline-none transition hover:text-dojo-textBright"
+        aria-label="Ordenar problemas"
+        className="cursor-pointer appearance-none rounded-lg py-1.5 pl-7 pr-6 text-[12px] font-medium text-dojo-textDim transition hover:text-dojo-textBright focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-dojo-accent"
         style={{ background: "var(--dojo-surface-sunken)" }}
       >
         {(Object.keys(SORT_LABEL) as SortOption[]).map((opt) => (
@@ -459,8 +463,11 @@ function ViewToggleButton({
 }) {
   return (
     <button
+      type="button"
       onClick={onClick}
       title={title}
+      aria-label={title}
+      aria-pressed={active}
       className="flex items-center justify-center rounded-md p-1.5 transition active:scale-90"
       style={
         active

@@ -57,7 +57,7 @@ export default function ProblemPanel({ problem, sampleTests, history = [], profi
   }
 
   return (
-    <section className="min-h-0 overflow-y-auto border-b border-dojo-border bg-dojo-bg md:border-b-0 md:border-r">
+    <section aria-label="Enunciado" className="min-h-0 overflow-y-auto border-b border-dojo-border bg-dojo-bg md:border-b-0 md:border-r">
       <div className="flex max-w-[640px] flex-col gap-[22px] px-4 pb-10 pt-6 sm:px-8 sm:pt-7">
         <div className="flex flex-col gap-3">
           <div className="flex items-center gap-2.5 font-mono text-[11px] text-dojo-textDim">
@@ -93,8 +93,11 @@ export default function ProblemPanel({ problem, sampleTests, history = [], profi
         <div className="flex items-center gap-3">
           <div className="h-px flex-1 bg-dojo-border" />
           <button
+            type="button"
             onClick={() => setMode((m) => (m === "statement" ? "notes" : "statement"))}
             title={mode === "statement" ? "Abrir rascunho pessoal" : "Voltar pro enunciado"}
+            aria-pressed={mode === "notes"}
+            aria-controls="painel-enunciado-conteudo"
             className="flex flex-none items-center gap-1.5 rounded-md border border-dojo-border2 bg-dojo-surfaceRaised px-2.5 py-1 text-[11px] font-medium text-dojo-textDim transition hover:bg-dojo-surfaceHover hover:text-dojo-textBright active:scale-95"
           >
             {mode === "statement" ? (
@@ -110,7 +113,7 @@ export default function ProblemPanel({ problem, sampleTests, history = [], profi
         </div>
 
         {mode === "statement" ? (
-          <div key="statement" className="animate-dojo-fade flex flex-col gap-[22px]">
+          <div id="painel-enunciado-conteudo" key="statement" className="animate-dojo-fade flex flex-col gap-[22px]">
             <div className="flex flex-col gap-3.5 text-sm leading-[1.68] text-dojo-text">
               {problem.description.split("\n\n").map((p, i) => (
                 <p key={i} className="m-0">
@@ -143,7 +146,7 @@ export default function ProblemPanel({ problem, sampleTests, history = [], profi
             </div>
           </div>
         ) : (
-          <div key="notes" className="animate-dojo-fade flex flex-col gap-2">
+          <div id="painel-enunciado-conteudo" key="notes" className="animate-dojo-fade flex flex-col gap-2">
             <span className="flex items-center gap-1.5 text-[11px] font-semibold uppercase tracking-[0.06em] text-dojo-textDim">
               <NotebookIcon />
               Rascunho — só você vê isso, fica salvo neste navegador
@@ -152,6 +155,7 @@ export default function ProblemPanel({ problem, sampleTests, history = [], profi
               value={notes}
               onChange={(e) => handleNotesChange(e.target.value)}
               placeholder="Rascunhe aqui: ideias, pseudocódigo, contas..."
+              aria-label="Rascunho pessoal"
               className="min-h-[320px] w-full resize-y rounded-lg border border-dojo-border2 bg-dojo-surfaceSunken p-4 font-mono text-[13px] leading-[1.8] text-dojo-text outline-none transition focus:ring-2 focus:ring-dojo-accent"
             />
           </div>

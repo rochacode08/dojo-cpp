@@ -67,7 +67,7 @@ export default function SubmissionToasts({ session }: { session: Session }) {
   if (toasts.length === 0) return null;
 
   return (
-    <div className="pointer-events-none fixed bottom-4 right-4 z-[998] flex flex-col gap-2">
+    <div role="status" aria-live="polite" className="pointer-events-none fixed bottom-4 right-4 z-[998] flex flex-col gap-2">
       {toasts.map((t) => (
         <div
           key={t.id}
@@ -76,7 +76,7 @@ export default function SubmissionToasts({ session }: { session: Session }) {
           }`}
           style={{ border: "1px solid var(--dojo-hairline)", borderLeft: `3px solid ${t.color}` }}
         >
-          <span>🎉</span>
+          <span aria-hidden="true">🎉</span>
           <span>{t.text}</span>
         </div>
       ))}

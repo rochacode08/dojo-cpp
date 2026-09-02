@@ -24,6 +24,7 @@ export default {
           textFaint: "var(--dojo-text-faint)",
           textSubtle: "var(--dojo-text-subtle)",
           accent: "var(--dojo-accent)",
+          accentSolid: "var(--dojo-accent-solid)",
           green: "var(--dojo-green)",
           greenBright: "var(--dojo-green-bright)",
           red: "var(--dojo-red)",

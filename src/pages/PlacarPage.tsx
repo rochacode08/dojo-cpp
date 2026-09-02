@@ -70,7 +70,7 @@ export default function PlacarPage({ session }: PlacarPageProps) {
 
   if (loading) {
     return (
-      <div className="animate-dojo-fade flex h-screen flex-col items-center justify-center gap-3 bg-dojo-bg font-sans text-sm text-dojo-textDim">
+      <div role="status" aria-live="polite" className="animate-dojo-fade flex h-screen flex-col items-center justify-center gap-3 bg-dojo-bg font-sans text-sm text-dojo-textDim">
         <Spinner />
         Carregando placar...
       </div>
@@ -81,7 +81,7 @@ export default function PlacarPage({ session }: PlacarPageProps) {
     <div className="flex h-screen flex-col overflow-hidden bg-dojo-bg font-sans text-dojo-text">
       <Header profiles={profiles} subtitle="Placar" />
 
-      <div className="min-h-0 flex-1 overflow-y-auto">
+      <main className="min-h-0 flex-1 overflow-y-auto">
         <div className="mx-auto flex max-w-[720px] flex-col gap-6 px-6 py-10">
           <div className="flex flex-col gap-2">
             <h1 className="m-0 text-[32px] font-bold leading-tight tracking-[-0.025em] text-dojo-textBright">
@@ -98,7 +98,7 @@ export default function PlacarPage({ session }: PlacarPageProps) {
             ))}
           </div>
         </div>
-      </div>
+      </main>
     </div>
   );
 }

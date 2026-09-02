@@ -37,11 +37,12 @@ interface TestsPanelProps {
   onRun: () => void;
   onReset: () => void;
   onResizeStart: (e: React.MouseEvent) => void;
+  onResizeStep: (delta: number) => void;
 }
 
 function Check() {
   return (
-    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <svg aria-hidden="true" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
       <path d="M20 6L9 17l-5-5" />
     </svg>
   );
@@ -49,7 +50,7 @@ function Check() {
 
 function Cross() {
   return (
-    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <svg aria-hidden="true" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
       <path d="M18 6L6 18" />
       <path d="M6 6l12 12" />
     </svg>
@@ -58,7 +59,7 @@ function Cross() {
 
 function Play() {
   return (
-    <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <svg aria-hidden="true" width="14" height="14" viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
       <path d="M6 3l14 9-14 9V3z" />
     </svg>
   );
@@ -73,7 +74,7 @@ function Spinner() {
   );
 }
 
-export default function TestsPanel({ phase, rows, height, canRun, onRun, onReset, onResizeStart }: TestsPanelProps) {
+export default function TestsPanel({ phase, rows, height, canRun, onRun, onReset, onResizeStart, onResizeStep }: TestsPanelProps) {
   const running = phase === "running";
   const passed = rows.filter((r) => r.passed).length;
 
@@ -97,7 +98,7 @@ export default function TestsPanel({ phase, rows, height, canRun, onRun, onReset
     <>
       <div className="flex flex-none items-center justify-between gap-3 border-t border-dojo-border bg-dojo-panel2 px-3.5 py-2.5">
         <div className="flex items-center gap-2.5 text-xs text-dojo-textDim">
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+          <svg aria-hidden="true" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
             <circle cx="12" cy="12" r="10" />
             <polyline points="12 6 12 12 16 14" />
           </svg>
@@ -111,24 +112,30 @@ export default function TestsPanel({ phase, rows, height, canRun, onRun, onReset
         </div>
         <div className="flex items-center gap-2">
           <button
-            onClick={onReset}
-            disabled={!canRun}
+            type="button"
+            onClick={() => canRun && onReset()}
+            aria-disabled={!canRun}
             title={canRun ? undefined : "Só o piloto pode reiniciar"}
-            className="inline-flex items-center gap-1.5 rounded-md border border-dojo-border2 bg-dojo-surfaceRaised px-3 py-1.5 font-sans text-[12.5px] text-dojo-text transition hover:bg-dojo-surfaceHover hover:text-dojo-textBright active:scale-95 disabled:cursor-not-allowed disabled:opacity-40 disabled:hover:bg-dojo-surfaceRaised disabled:active:scale-100"
+            className={`inline-flex items-center gap-1.5 rounded-md border border-dojo-border2 bg-dojo-surfaceRaised px-3 py-1.5 font-sans text-[12.5px] text-dojo-text transition hover:bg-dojo-surfaceHover hover:text-dojo-textBright active:scale-95 ${
+              !canRun ? "pointer-events-none cursor-not-allowed opacity-40" : ""
+            }`}
           >
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <svg aria-hidden="true" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
               <path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8" />
               <path d="M3 3v5h5" />
             </svg>
             Reiniciar
           </button>
           <button
-            onClick={onRun}
-            disabled={running || !canRun}
+            type="button"
+            onClick={() => !running && canRun && onRun()}
+            aria-disabled={running || !canRun}
             title={canRun ? "Atalho: Ctrl+Enter" : "Só o piloto pode executar"}
-            className="inline-flex items-center gap-2 rounded-md px-4 py-2 font-sans text-[13px] font-semibold text-white transition hover:brightness-110 active:scale-[0.97] disabled:cursor-not-allowed disabled:hover:brightness-100 disabled:active:scale-100"
+            className={`inline-flex items-center gap-2 rounded-md px-4 py-2 font-sans text-[13px] font-semibold text-white transition hover:brightness-110 active:scale-[0.97] ${
+              running || !canRun ? "pointer-events-none cursor-not-allowed" : ""
+            }`}
             style={{
-              background: running || !canRun ? "var(--dojo-surface-raised)" : "#2ea043",
+              background: running || !canRun ? "var(--dojo-surface-raised)" : "#1f7a34",
               border: `1px solid ${running || !canRun ? "var(--dojo-border2)" : "rgba(255,255,255,0.14)"}`,
               boxShadow: running || !canRun ? "none" : "0 0 0 1px rgba(46,160,67,0.25), 0 2px 10px rgba(46,160,67,0.35)",
               opacity: !canRun && !running ? 0.5 : 1,
@@ -148,42 +155,58 @@ export default function TestsPanel({ phase, rows, height, canRun, onRun, onReset
       <div className="flex flex-none flex-col border-t border-dojo-border bg-dojo-panel" style={{ height }}>
         <div
           onMouseDown={onResizeStart}
-          className="group flex h-[6px] flex-none cursor-row-resize items-center justify-center"
+          onKeyDown={(e) => {
+            if (e.key === "ArrowUp") {
+              e.preventDefault();
+              onResizeStep(16);
+            } else if (e.key === "ArrowDown") {
+              e.preventDefault();
+              onResizeStep(-16);
+            }
+          }}
+          role="separator"
+          aria-orientation="horizontal"
+          aria-label="Redimensionar painel de testes (setas para cima/baixo)"
+          aria-valuenow={height}
+          tabIndex={0}
+          className="group flex h-[6px] flex-none cursor-row-resize items-center justify-center focus:outline-none"
         >
-          <div className="h-[3px] w-10 rounded-full bg-dojo-border2 group-hover:bg-dojo-accent" />
+          <div className="h-[3px] w-10 rounded-full bg-dojo-border2 group-hover:bg-dojo-accent group-focus-visible:bg-dojo-accent" />
         </div>
 
         <div className="flex h-[34px] flex-none items-center justify-between gap-3 border-b border-dojo-border px-3.5">
           <div className="flex h-full items-center gap-[18px]">
             <div className="flex h-full items-center gap-1.5 border-b border-dojo-accent text-[11px] font-semibold tracking-[0.06em] text-dojo-textBright">
-              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <svg aria-hidden="true" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                 <polyline points="4 17 10 11 4 5" />
                 <line x1="12" y1="19" x2="20" y2="19" />
               </svg>
               TESTES
             </div>
           </div>
-          <div className="font-mono text-[11px]" style={{ color: summaryColor }}>
+          <div role="status" aria-live="polite" aria-atomic="true" className="font-mono text-[11px]" style={{ color: summaryColor }}>
             {summary}
           </div>
         </div>
 
         <div className="min-h-0 flex-1 overflow-y-auto px-3.5 pb-4 pt-2.5 font-mono text-[12.5px]">
+        <ul aria-live="polite" aria-busy={running} className="m-0 list-none p-0">
           {rows.map((row, i) => {
             const firstCompileErrorIndex = rows.findIndex((r) => r.status === "ERRO DE COMPILAÇÃO");
             const isRepeatedCompileError =
               row.status === "ERRO DE COMPILAÇÃO" && firstCompileErrorIndex !== i;
 
             return (
-            <div
+            <li
               key={i}
               className="animate-dojo-fade border-b border-dojo-border py-[7px]"
               style={{ animationDelay: `${Math.min(i, 15) * 35}ms`, animationFillMode: "backwards" }}
             >
               <div className="flex items-center gap-2.5">
-                <span className="flex w-3.5 items-center" style={{ color: row.passed ? "var(--dojo-green-bright)" : "var(--dojo-red)" }}>
+                <span aria-hidden="true" className="flex w-3.5 items-center" style={{ color: row.passed ? "var(--dojo-green-bright)" : "var(--dojo-red)" }}>
                   {row.passed ? <Check /> : <Cross />}
                 </span>
+                <span className="sr-only">{row.passed ? "aprovado" : "reprovado"}</span>
                 <span className="w-[78px] text-dojo-textDim">{row.name}</span>
                 <span
                   className="rounded-full border px-2 py-[1px] text-[11px] font-semibold"
@@ -233,10 +256,11 @@ export default function TestsPanel({ phase, rows, height, canRun, onRun, onReset
                   </div>
                 </div>
               )}
-            </div>
+            </li>
             );
           })}
-          <div className="pt-2.5 text-dojo-textFaint">{footerLine}</div>
+        </ul>
+        <div className="pt-2.5 text-dojo-textFaint">{footerLine}</div>
         </div>
       </div>
     </>

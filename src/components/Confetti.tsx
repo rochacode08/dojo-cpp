@@ -26,7 +26,7 @@ export default function Confetti() {
   );
 
   return (
-    <div className="pointer-events-none fixed inset-0 z-[999] overflow-hidden">
+    <div aria-hidden="true" className="pointer-events-none fixed inset-0 z-[999] overflow-hidden">
       {pieces.map((p) => (
         <span
           key={p.id}

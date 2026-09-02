@@ -100,7 +100,7 @@ export default function LoginPage() {
   return (
     <div className="relative flex h-screen items-center justify-center overflow-hidden bg-dojo-bg font-sans text-dojo-text">
       {/* Fundo de código */}
-      <div className="pointer-events-none absolute inset-0 grid grid-cols-2 gap-8 p-8 opacity-[0.32] sm:grid-cols-3 md:grid-cols-4">
+      <div aria-hidden="true" className="pointer-events-none absolute inset-0 grid grid-cols-2 gap-8 p-8 opacity-[0.32] sm:grid-cols-3 md:grid-cols-4">
         {Array.from({ length: 12 }).map((_, i) => (
           <pre key={i} className="whitespace-pre font-mono text-[11.5px] leading-[1.6]">
             {highlight(SNIPPETS[i % SNIPPETS.length]).map((part, j) => (
@@ -139,7 +139,7 @@ export default function LoginPage() {
         <div className="flex flex-col items-center gap-3 text-center">
           <div
             className="flex h-11 w-11 items-center justify-center rounded-xl font-mono text-[13px] font-bold text-white"
-            style={{ background: "#2b95e0", boxShadow: "0 0 0 1px rgba(255,255,255,0.15), 0 8px 20px rgba(43,149,224,0.4)" }}
+            style={{ background: "#1b6fb0", boxShadow: "0 0 0 1px rgba(255,255,255,0.15), 0 8px 20px rgba(43,149,224,0.4)" }}
           >
             C++
           </div>
@@ -178,7 +178,7 @@ export default function LoginPage() {
         </div>
 
         {error && (
-          <div className="animate-dojo-fade rounded-lg border border-dojo-red/30 bg-[#241010] px-3 py-2 text-[12px] text-dojo-red">
+          <div role="alert" className="animate-dojo-fade rounded-lg border border-dojo-red/30 bg-[#241010] px-3 py-2 text-[12px] text-dojo-red">
             {error}
           </div>
         )}
@@ -187,7 +187,7 @@ export default function LoginPage() {
           type="submit"
           disabled={loading}
           className="mt-1 rounded-lg py-2.5 text-[13.5px] font-semibold text-white transition hover:brightness-110 active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-60"
-          style={{ background: "#2b95e0", boxShadow: "0 0 0 1px rgba(255,255,255,0.12), 0 6px 20px rgba(43,149,224,0.35)" }}
+          style={{ background: "#1b6fb0", boxShadow: "0 0 0 1px rgba(255,255,255,0.12), 0 6px 20px rgba(43,149,224,0.35)" }}
         >
           {loading ? "Entrando..." : "Entrar"}
         </button>

@@ -28,7 +28,7 @@ export default function App() {
 
   if (loading) {
     return (
-      <div className="animate-dojo-fade flex h-screen flex-col items-center justify-center gap-3 bg-dojo-bg text-dojo-textDim font-sans text-sm">
+      <div role="status" aria-live="polite" className="animate-dojo-fade flex h-screen flex-col items-center justify-center gap-3 bg-dojo-bg text-dojo-textDim font-sans text-sm">
         <Spinner />
         Carregando...
       </div>

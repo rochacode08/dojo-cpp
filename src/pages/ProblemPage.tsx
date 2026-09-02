@@ -183,6 +183,10 @@ export default function ProblemPage({ session }: ProblemPageProps) {
     setTestsHeight(Math.min(Math.max(newHeight, 120), window.innerHeight - 260));
   }
 
+  function handleResizeStep(delta: number) {
+    setTestsHeight((h) => Math.min(Math.max(h + delta, 120), window.innerHeight - 260));
+  }
+
   function handleResizeEnd() {
     draggingRef.current = false;
     document.body.style.cursor = "";
@@ -200,7 +204,7 @@ export default function ProblemPage({ session }: ProblemPageProps) {
 
   if (!problem) {
     return (
-      <div className="animate-dojo-fade flex h-screen flex-col items-center justify-center gap-3 bg-dojo-bg font-sans text-sm text-dojo-textDim">
+      <div role="status" aria-live="polite" className="animate-dojo-fade flex h-screen flex-col items-center justify-center gap-3 bg-dojo-bg font-sans text-sm text-dojo-textDim">
         <Spinner />
         Carregando problema...
       </div>
@@ -250,7 +254,7 @@ export default function ProblemPage({ session }: ProblemPageProps) {
             </span>
             <button
               onClick={room.claimPilot}
-              className="rounded-md bg-dojo-accent px-2.5 py-1 text-[11.5px] font-semibold text-white transition hover:brightness-110 active:scale-95"
+              className="rounded-md bg-dojo-accentSolid px-2.5 py-1 text-[11.5px] font-semibold text-white transition hover:brightness-110 active:scale-95"
             >
               Pegar o volante
             </button>
@@ -258,10 +262,10 @@ export default function ProblemPage({ session }: ProblemPageProps) {
         )}
       </div>
 
-      <div className="grid min-h-0 flex-1 grid-cols-1 overflow-y-auto md:grid-cols-[minmax(360px,42%)_1fr] md:overflow-hidden">
+      <main className="grid min-h-0 flex-1 grid-cols-1 overflow-y-auto md:grid-cols-[minmax(360px,42%)_1fr] md:overflow-hidden">
         <ProblemPanel problem={problem} sampleTests={sampleTests} history={history} profiles={profiles} />
 
-        <section className="flex min-h-0 flex-col bg-dojo-bg">
+        <section aria-label="Editor e testes" className="flex min-h-0 flex-col bg-dojo-bg">
           <CodeEditor code={room.state.code} onChange={room.updateCode} readOnly={!room.isPilot} />
           <TestsPanel
             phase={room.state.phase}
@@ -271,9 +275,10 @@ export default function ProblemPage({ session }: ProblemPageProps) {
             onRun={handleRun}
             onReset={handleReset}
             onResizeStart={handleResizeStart}
+            onResizeStep={handleResizeStep}
           />
         </section>
-      </div>
+      </main>
 
       <button
         onClick={() => supabase.auth.signOut()}
