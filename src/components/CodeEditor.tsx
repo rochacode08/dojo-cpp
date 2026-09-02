@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from "react";
-import Editor, { type BeforeMount, type OnMount } from "@monaco-editor/react";
-import type { editor as MonacoEditorNS } from "monaco-editor";
+import Editor, { type BeforeMount, type Monaco, type OnMount } from "@monaco-editor/react";
+import type { editor as MonacoEditorNS, Position } from "monaco-editor";
 
 interface CodeEditorProps {
   code: string;
@@ -8,7 +8,84 @@ interface CodeEditorProps {
   readOnly?: boolean;
 }
 
+interface SnippetDef {
+  label: string;
+  detail: string;
+  insertText: string;
+}
+
+// Trechos comuns de C++ básico/CS1 — não é IntelliSense de verdade (isso
+// exigiria um language server como o clangd rodando em algum lugar), só um
+// atalho pra não digitar de novo os padrões mais repetidos do curso.
+const SNIPPETS: SnippetDef[] = [
+  { label: "main", detail: "Esqueleto de função main", insertText: "int main() {\n\t${0}\n\treturn 0;\n}" },
+  { label: "incliostream", detail: "#include <iostream>", insertText: "#include <iostream>" },
+  { label: "inclvector", detail: "#include <vector>", insertText: "#include <vector>" },
+  { label: "inclstring", detail: "#include <string>", insertText: "#include <string>" },
+  { label: "inclalgorithm", detail: "#include <algorithm>", insertText: "#include <algorithm>" },
+  { label: "inclcmath", detail: "#include <cmath>", insertText: "#include <cmath>" },
+  { label: "inclmap", detail: "#include <map>", insertText: "#include <map>" },
+  { label: "usingnamespacestd", detail: "using namespace std;", insertText: "using namespace std;" },
+  {
+    label: "for",
+    detail: "Loop for clássico",
+    insertText: "for (int ${1:i} = 0; ${1:i} < ${2:n}; ${1:i}++) {\n\t${0}\n}",
+  },
+  {
+    label: "forrange",
+    detail: "Loop for baseado em intervalo",
+    insertText: "for (${1:auto}& ${2:x} : ${3:vetor}) {\n\t${0}\n}",
+  },
+  { label: "while", detail: "Loop while", insertText: "while (${1:condicao}) {\n\t${0}\n}" },
+  { label: "ifelse", detail: "if / else", insertText: "if (${1:condicao}) {\n\t${2}\n} else {\n\t${0}\n}" },
+  { label: "cin", detail: "Ler entrada", insertText: "cin >> ${0:variavel};" },
+  { label: "cout", detail: "Imprimir com quebra de linha", insertText: "cout << ${0:valor} << endl;" },
+  { label: "vectorint", detail: "vector<int>", insertText: "vector<int> ${1:v}(${2:n});" },
+  { label: "vectorstring", detail: "vector<string>", insertText: "vector<string> ${1:v}(${2:n});" },
+  {
+    label: "class",
+    detail: "Esqueleto de classe",
+    insertText: "class ${1:Nome} {\nprivate:\n\t${2}\npublic:\n\t${0}\n};",
+  },
+  {
+    label: "struct",
+    detail: "Esqueleto de struct",
+    insertText: "struct ${1:Nome} {\n\t${0}\n};",
+  },
+  { label: "setprecision", detail: "cout com casas decimais fixas", insertText: "cout << fixed << setprecision(${1:2});" },
+];
+
+let completionsRegistered = false;
+
+function registerCompletions(monaco: Monaco) {
+  if (completionsRegistered) return;
+  completionsRegistered = true;
+  monaco.languages.registerCompletionItemProvider("cpp", {
+    provideCompletionItems(model: MonacoEditorNS.ITextModel, position: Position) {
+      const word = model.getWordUntilPosition(position);
+      const range = {
+        startLineNumber: position.lineNumber,
+        endLineNumber: position.lineNumber,
+        startColumn: word.startColumn,
+        endColumn: word.endColumn,
+      };
+      return {
+        suggestions: SNIPPETS.map((s) => ({
+          label: s.label,
+          kind: monaco.languages.CompletionItemKind.Snippet,
+          detail: s.detail,
+          insertText: s.insertText,
+          insertTextRules: monaco.languages.CompletionItemInsertTextRule.InsertAsSnippet,
+          range,
+        })),
+      };
+    },
+  });
+}
+
 const handleBeforeMount: BeforeMount = (monaco) => {
+  registerCompletions(monaco);
+
   // Paleta clássica de IDE de C++ (tipo Code::Blocks/Dev-C++), em versão clara e escura.
   monaco.editor.defineTheme("dojo-dark", {
     base: "vs-dark",
