@@ -1,12 +1,14 @@
 import { useEffect, useRef, useState } from "react";
 import type { RealtimeChannel } from "@supabase/supabase-js";
 import { supabase } from "./supabaseClient";
-import type { TestResultRow } from "./types";
+import type { RunMode, TestResultRow } from "./types";
 
 export interface RoomState {
   code: string;
   phase: "idle" | "running" | "result";
   rows: TestResultRow[];
+  /** Se a última execução foi "Testar" (só exemplos) ou "Enviar" (tudo). */
+  mode: RunMode;
 }
 
 export interface CursorPosition {
@@ -46,7 +48,7 @@ function computePilotId(
 export function useCollabRoom(problemId: string | null, userId: string, starterCode: string) {
   const [participantIds, setParticipantIds] = useState<string[]>([]);
   const [pilotId, setPilotId] = useState<string | null>(null);
-  const [state, setState] = useState<RoomState>({ code: starterCode, phase: "idle", rows: [] });
+  const [state, setState] = useState<RoomState>({ code: starterCode, phase: "idle", rows: [], mode: "test" });
   const [pilotCursor, setPilotCursor] = useState<CursorPosition | null>(null);
 
   const channelRef = useRef<RealtimeChannel | null>(null);
@@ -69,7 +71,7 @@ export function useCollabRoom(problemId: string | null, userId: string, starterC
     hasReceivedStateRef.current = false;
     overridePilotRef.current = null;
     pilotIdRef.current = null;
-    setState({ code: starterCode, phase: "idle", rows: [] });
+    setState({ code: starterCode, phase: "idle", rows: [], mode: "test" });
     setPilotCursor(null);
 
     const channel = supabase.channel(`problem:${problemId}`, {
@@ -126,7 +128,7 @@ export function useCollabRoom(problemId: string | null, userId: string, starterC
 
             if (error) console.error("erro ao buscar rascunho salvo:", error);
             if (!hasReceivedStateRef.current) {
-              setState({ code: data?.code ?? starterCode, phase: "idle", rows: [] });
+              setState({ code: data?.code ?? starterCode, phase: "idle", rows: [], mode: "test" });
             }
           }, STATE_REQUEST_TIMEOUT_MS);
         }
@@ -177,24 +179,24 @@ export function useCollabRoom(problemId: string | null, userId: string, starterC
     });
   }
 
-  function setRunning() {
+  function setRunning(mode: RunMode) {
     setState((prev) => {
-      const next: RoomState = { ...prev, phase: "running", rows: [] };
+      const next: RoomState = { ...prev, phase: "running", rows: [], mode };
       broadcastState(next);
       return next;
     });
   }
 
-  function setResult(rows: TestResultRow[]) {
+  function setResult(rows: TestResultRow[], mode: RunMode) {
     setState((prev) => {
-      const next: RoomState = { ...prev, phase: "result", rows };
+      const next: RoomState = { ...prev, phase: "result", rows, mode };
       broadcastState(next);
       return next;
     });
   }
 
   function resetRoom(code: string) {
-    const next: RoomState = { code, phase: "idle", rows: [] };
+    const next: RoomState = { code, phase: "idle", rows: [], mode: "test" };
     setState(next);
     broadcastState(next);
     persistDraft(code);

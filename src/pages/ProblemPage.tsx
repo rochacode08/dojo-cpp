@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import { useParams } from "react-router-dom";
 import type { Session } from "@supabase/supabase-js";
 import { supabase } from "../lib/supabaseClient";
-import type { Problem, Profile, RunCodeResponse, SubmissionHistoryEntry, TestCase } from "../lib/types";
+import type { Problem, Profile, RunCodeResponse, RunMode, SubmissionHistoryEntry, TestCase } from "../lib/types";
 import { useCollabRoom } from "../lib/useCollabRoom";
 import Header from "../components/Header";
 import ProblemPanel from "../components/ProblemPanel";
@@ -91,9 +91,9 @@ export default function ProblemPage({ session }: ProblemPageProps) {
     if (data) setHistory(data as SubmissionHistoryEntry[]);
   }
 
-  async function handleRun() {
+  async function handleRun(mode: RunMode) {
     if (!problem || !room.isPilot) return;
-    room.setRunning();
+    room.setRunning(mode);
 
     const controller = new AbortController();
     const timeoutId = setTimeout(() => controller.abort(), RUN_TIMEOUT_MS);
@@ -102,7 +102,7 @@ export default function ProblemPage({ session }: ProblemPageProps) {
     let error: { message: string } | null = null;
     try {
       const res = await supabase.functions.invoke<RunCodeResponse>("run-code", {
-        body: { problem_id: problem.id, code: room.state.code },
+        body: { problem_id: problem.id, code: room.state.code, mode },
         signal: controller.signal,
       });
       data = res.data;
@@ -119,22 +119,27 @@ export default function ProblemPage({ session }: ProblemPageProps) {
     }
 
     if (error || !data) {
-      room.setResult([
-        {
-          name: "execução",
-          passed: false,
-          status: "ERRO",
-          time: "",
-          input: "-",
-          expected: "-",
-          received: error?.message ?? "falha ao chamar run-code",
-        },
-      ]);
+      room.setResult(
+        [
+          {
+            name: "execução",
+            passed: false,
+            status: "ERRO",
+            time: "",
+            input: "-",
+            expected: "-",
+            received: error?.message ?? "falha ao chamar run-code",
+          },
+        ],
+        mode,
+      );
       return;
     }
 
-    room.setResult(data.results);
-    fetchHistory(problem.id);
+    room.setResult(data.results, mode);
+
+    // Só "Enviar" grava submissão, então só aí o histórico muda.
+    if (mode === "submit") fetchHistory(problem.id);
 
     if (data.results.length > 0 && data.results.every((r) => r.passed)) {
       celebrate();
@@ -158,7 +163,9 @@ export default function ProblemPage({ session }: ProblemPageProps) {
     function handleKeyDown(e: KeyboardEvent) {
       if ((e.ctrlKey || e.metaKey) && e.key === "Enter") {
         e.preventDefault();
-        if (room.isPilot && room.state.phase !== "running") handleRun();
+        if (!room.isPilot || room.state.phase === "running") return;
+        // Ctrl+Enter testa (iteração rápida); com Shift, envia de verdade.
+        handleRun(e.shiftKey ? "submit" : "test");
       }
     }
     window.addEventListener("keydown", handleKeyDown);
@@ -280,6 +287,7 @@ export default function ProblemPage({ session }: ProblemPageProps) {
           <TestsPanel
             phase={room.state.phase}
             rows={room.state.rows}
+            mode={room.state.mode}
             height={testsHeight}
             canRun={room.isPilot}
             onRun={handleRun}

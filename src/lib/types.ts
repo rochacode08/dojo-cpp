@@ -37,6 +37,10 @@ export type SubmissionStatus =
   | "compile_error"
   | "runtime_error";
 
+/** "test" roda só os casos de exemplo e não conta como tentativa;
+ *  "submit" roda todos os casos e registra a submissão. */
+export type RunMode = "test" | "submit";
+
 export interface TestResultRow {
   name: string;
   passed: boolean;
@@ -45,11 +49,16 @@ export interface TestResultRow {
   input?: string;
   expected?: string;
   received?: string;
+  /** Caso de exemplo (visível no enunciado) ou caso oculto. */
+  isSample?: boolean;
+  /** Aviso sobre formatação (quebra de linha faltando, espaços sobrando...). */
+  warning?: string;
 }
 
 export interface RunCodeResponse {
   status: SubmissionStatus;
   results: TestResultRow[];
+  mode: RunMode;
 }
 
 export interface SubmissionHistoryEntry {
