@@ -266,7 +266,17 @@ export default function ProblemPage({ session }: ProblemPageProps) {
         <ProblemPanel problem={problem} sampleTests={sampleTests} history={history} profiles={profiles} />
 
         <section aria-label="Editor e testes" className="flex min-h-0 flex-col bg-dojo-bg">
-          <CodeEditor code={room.state.code} onChange={room.updateCode} readOnly={!room.isPilot} />
+          <CodeEditor
+            code={room.state.code}
+            onChange={room.updateCode}
+            readOnly={!room.isPilot}
+            onCursorChange={room.isPilot ? room.broadcastCursor : undefined}
+            remoteCursor={
+              !room.isPilot && room.pilotCursor
+                ? { ...room.pilotCursor, label: pilotProfile?.display_name ?? "o piloto" }
+                : null
+            }
+          />
           <TestsPanel
             phase={room.state.phase}
             rows={room.state.rows}

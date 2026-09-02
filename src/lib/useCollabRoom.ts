@@ -9,11 +9,17 @@ export interface RoomState {
   rows: TestResultRow[];
 }
 
+export interface CursorPosition {
+  lineNumber: number;
+  column: number;
+}
+
 interface PresenceMeta {
   online_at: string;
 }
 
 const CODE_BROADCAST_DEBOUNCE_MS = 200;
+const CURSOR_BROADCAST_DEBOUNCE_MS = 80;
 const STATE_REQUEST_TIMEOUT_MS = 600;
 
 function computePilotId(
@@ -41,13 +47,16 @@ export function useCollabRoom(problemId: string | null, userId: string, starterC
   const [participantIds, setParticipantIds] = useState<string[]>([]);
   const [pilotId, setPilotId] = useState<string | null>(null);
   const [state, setState] = useState<RoomState>({ code: starterCode, phase: "idle", rows: [] });
+  const [pilotCursor, setPilotCursor] = useState<CursorPosition | null>(null);
 
   const channelRef = useRef<RealtimeChannel | null>(null);
   const overridePilotRef = useRef<{ id: string; ts: number } | null>(null);
   const overrideTsRef = useRef(0);
   const hasReceivedStateRef = useRef(false);
   const codeDebounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const cursorDebounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const isPilotRef = useRef(false);
+  const pilotIdRef = useRef<string | null>(null);
   const stateRef = useRef(state);
 
   useEffect(() => {
@@ -59,7 +68,9 @@ export function useCollabRoom(problemId: string | null, userId: string, starterC
 
     hasReceivedStateRef.current = false;
     overridePilotRef.current = null;
+    pilotIdRef.current = null;
     setState({ code: starterCode, phase: "idle", rows: [] });
+    setPilotCursor(null);
 
     const channel = supabase.channel(`problem:${problemId}`, {
       config: { presence: { key: userId } },
@@ -70,6 +81,8 @@ export function useCollabRoom(problemId: string | null, userId: string, starterC
       const presenceState = channel.presenceState() as Record<string, PresenceMeta[]>;
       setParticipantIds(Object.keys(presenceState));
       const pilot = computePilotId(presenceState, overridePilotRef.current?.id ?? null);
+      if (pilotIdRef.current !== pilot) setPilotCursor(null);
+      pilotIdRef.current = pilot;
       setPilotId(pilot);
       isPilotRef.current = pilot === userId;
     }
@@ -90,8 +103,13 @@ export function useCollabRoom(problemId: string | null, userId: string, starterC
         if (ts >= overrideTsRef.current) {
           overrideTsRef.current = ts;
           overridePilotRef.current = { id: newPilot, ts };
+          setPilotCursor(null);
           recomputePilot();
         }
+      })
+      .on("broadcast", { event: "cursor_move" }, ({ payload }) => {
+        const { userId: fromId, lineNumber, column } = payload as CursorPosition & { userId: string };
+        if (fromId !== userId) setPilotCursor({ lineNumber, column });
       })
       .subscribe(async (status) => {
         if (status === "SUBSCRIBED") {
@@ -116,6 +134,7 @@ export function useCollabRoom(problemId: string | null, userId: string, starterC
 
     return () => {
       if (codeDebounceRef.current) clearTimeout(codeDebounceRef.current);
+      if (cursorDebounceRef.current) clearTimeout(cursorDebounceRef.current);
       channel.unsubscribe();
       channelRef.current = null;
     };
@@ -124,6 +143,18 @@ export function useCollabRoom(problemId: string | null, userId: string, starterC
 
   function broadcastState(next: RoomState) {
     channelRef.current?.send({ type: "broadcast", event: "state_sync", payload: next });
+  }
+
+  function broadcastCursor(lineNumber: number, column: number) {
+    if (!isPilotRef.current) return;
+    if (cursorDebounceRef.current) clearTimeout(cursorDebounceRef.current);
+    cursorDebounceRef.current = setTimeout(() => {
+      channelRef.current?.send({
+        type: "broadcast",
+        event: "cursor_move",
+        payload: { userId, lineNumber, column },
+      });
+    }, CURSOR_BROADCAST_DEBOUNCE_MS);
   }
 
   async function persistDraft(code: string) {
@@ -183,10 +214,12 @@ export function useCollabRoom(problemId: string | null, userId: string, starterC
     pilotId,
     isPilot: pilotId === userId,
     state,
+    pilotCursor,
     updateCode,
     setRunning,
     setResult,
     resetRoom,
     claimPilot,
+    broadcastCursor,
   };
 }

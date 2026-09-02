@@ -2,10 +2,18 @@ import { useEffect, useRef, useState } from "react";
 import Editor, { type BeforeMount, type Monaco, type OnMount } from "@monaco-editor/react";
 import type { editor as MonacoEditorNS, Position } from "monaco-editor";
 
+interface RemoteCursor {
+  lineNumber: number;
+  column: number;
+  label: string;
+}
+
 interface CodeEditorProps {
   code: string;
   onChange: (value: string) => void;
   readOnly?: boolean;
+  onCursorChange?: (lineNumber: number, column: number) => void;
+  remoteCursor?: RemoteCursor | null;
 }
 
 interface SnippetDef {
@@ -149,12 +157,19 @@ function MoonIcon() {
   );
 }
 
-export default function CodeEditor({ code, onChange, readOnly }: CodeEditorProps) {
+export default function CodeEditor({ code, onChange, readOnly, onCursorChange, remoteCursor }: CodeEditorProps) {
   const [light, setLight] = useState(false);
   const editorRef = useRef<MonacoEditorNS.IStandaloneCodeEditor | null>(null);
+  const monacoRef = useRef<Monaco | null>(null);
+  const decorationIdsRef = useRef<string[]>([]);
+  const cursorWidgetRef = useRef<MonacoEditorNS.IContentWidget | null>(null);
 
-  const handleMount: OnMount = (editorInstance) => {
+  const handleMount: OnMount = (editorInstance, monaco) => {
     editorRef.current = editorInstance;
+    monacoRef.current = monaco;
+    editorInstance.onDidChangeCursorPosition((e) => {
+      onCursorChange?.(e.position.lineNumber, e.position.column);
+    });
   };
 
   // Só empurra texto pro editor quando a mudança veio de fora (outra pessoa
@@ -168,6 +183,49 @@ export default function CodeEditor({ code, onChange, readOnly }: CodeEditorProps
       if (position) editorInstance.setPosition(position);
     }
   }, [code]);
+
+  // Mostra onde o piloto está digitando pra quem está em modo copiloto: a
+  // linha inteira ganha um fundo destacado, e um rótulo flutuante com o
+  // nome aparece perto do cursor dele.
+  useEffect(() => {
+    const editorInstance = editorRef.current;
+    const monaco = monacoRef.current;
+    if (!editorInstance || !monaco) return;
+
+    const lineDecoration: MonacoEditorNS.IModelDeltaDecoration[] = remoteCursor
+      ? [
+          {
+            range: new monaco.Range(remoteCursor.lineNumber, 1, remoteCursor.lineNumber, 1),
+            options: { isWholeLine: true, className: "dojo-remote-cursor-line" },
+          },
+        ]
+      : [];
+    decorationIdsRef.current = editorInstance.deltaDecorations(decorationIdsRef.current, lineDecoration);
+
+    if (cursorWidgetRef.current) {
+      editorInstance.removeContentWidget(cursorWidgetRef.current);
+      cursorWidgetRef.current = null;
+    }
+
+    if (remoteCursor) {
+      const domNode = document.createElement("div");
+      domNode.className = "dojo-remote-cursor-label";
+      domNode.textContent = `🚗 ${remoteCursor.label}`;
+      const widget: MonacoEditorNS.IContentWidget = {
+        getId: () => "dojo-remote-cursor-widget",
+        getDomNode: () => domNode,
+        getPosition: () => ({
+          position: { lineNumber: remoteCursor.lineNumber, column: remoteCursor.column },
+          preference: [
+            monaco.editor.ContentWidgetPositionPreference.ABOVE,
+            monaco.editor.ContentWidgetPositionPreference.EXACT,
+          ],
+        }),
+      };
+      editorInstance.addContentWidget(widget);
+      cursorWidgetRef.current = widget;
+    }
+  }, [remoteCursor]);
 
   return (
     <div className="flex h-[50vh] flex-none flex-col bg-dojo-bg md:h-auto md:min-h-0 md:flex-1">
