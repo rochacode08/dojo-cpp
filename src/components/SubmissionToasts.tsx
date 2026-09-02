@@ -6,6 +6,7 @@ interface ToastItem {
   id: string;
   text: string;
   color: string;
+  leaving: boolean;
 }
 
 interface ProfileInfo {
@@ -47,7 +48,10 @@ export default function SubmissionToasts({ session }: { session: Session }) {
           const title = problemsRef.current[row.problem_id];
           const text = `${profile?.display_name ?? "Alguém"} resolveu ${title ?? "um problema"}`;
 
-          setToasts((prev) => [...prev, { id: row.id, text, color: profile?.avatar_color ?? "#2b95e0" }]);
+          setToasts((prev) => [...prev, { id: row.id, text, color: profile?.avatar_color ?? "#2b95e0", leaving: false }]);
+          setTimeout(() => {
+            setToasts((prev) => prev.map((t) => (t.id === row.id ? { ...t, leaving: true } : t)));
+          }, 5200);
           setTimeout(() => {
             setToasts((prev) => prev.filter((t) => t.id !== row.id));
           }, 5500);
@@ -67,7 +71,9 @@ export default function SubmissionToasts({ session }: { session: Session }) {
       {toasts.map((t) => (
         <div
           key={t.id}
-          className="animate-dojo-toast-in pointer-events-auto flex max-w-[300px] items-center gap-2.5 rounded-lg bg-dojo-panel px-4 py-3 text-[13px] text-dojo-text shadow-lg"
+          className={`pointer-events-auto flex max-w-[300px] items-center gap-2.5 rounded-lg bg-dojo-panel px-4 py-3 text-[13px] text-dojo-text shadow-lg transition-all duration-300 ${
+            t.leaving ? "translate-x-4 opacity-0" : "animate-dojo-toast-in"
+          }`}
           style={{ border: "1px solid var(--dojo-hairline)", borderLeft: `3px solid ${t.color}` }}
         >
           <span>🎉</span>

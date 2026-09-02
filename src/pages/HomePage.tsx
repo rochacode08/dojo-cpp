@@ -4,6 +4,7 @@ import type { Session } from "@supabase/supabase-js";
 import { supabase } from "../lib/supabaseClient";
 import type { Difficulty, Problem, Profile } from "../lib/types";
 import Header from "../components/Header";
+import Spinner from "../components/Spinner";
 
 const DIFFICULTIES: Difficulty[] = ["Fácil", "Médio", "Difícil"];
 
@@ -158,9 +159,15 @@ export default function HomePage({ session }: HomePageProps) {
 
   const pct = problems.length > 0 ? Math.round((solvedIds.size / problems.length) * 100) : 0;
 
+  // Chave que muda quando view/ordenação/filtros de categoria mudam (não a
+  // busca, pra não reanimar a cada tecla digitada) — força o grid a remontar
+  // e os cards a entrarem de novo com o efeito de cascata.
+  const listKey = `${viewMode}-${sortBy}-${status}-${[...difficulties].sort().join(",")}-${[...tags].sort().join(",")}`;
+
   if (loading) {
     return (
-      <div className="flex h-screen items-center justify-center bg-dojo-bg font-sans text-sm text-dojo-textDim">
+      <div className="animate-dojo-fade flex h-screen flex-col items-center justify-center gap-3 bg-dojo-bg font-sans text-sm text-dojo-textDim">
+        <Spinner />
         Carregando problemas...
       </div>
     );
@@ -305,15 +312,15 @@ export default function HomePage({ session }: HomePageProps) {
                 Nenhum problema encontrado com esses filtros.
               </div>
             ) : viewMode === "grid" ? (
-              <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-3">
+              <div key={listKey} className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-3">
                 {filtered.map((p, i) => (
-                  <ProblemCard key={p.id} index={i + 1} problem={p} solved={solvedIds.has(p.id)} compact />
+                  <ProblemCard key={p.id} index={i + 1} entryDelay={i} problem={p} solved={solvedIds.has(p.id)} compact />
                 ))}
               </div>
             ) : (
-              <div className="flex flex-col gap-4">
+              <div key={listKey} className="flex flex-col gap-4">
                 {filtered.map((p, i) => (
-                  <ProblemCard key={p.id} index={i + 1} problem={p} solved={solvedIds.has(p.id)} />
+                  <ProblemCard key={p.id} index={i + 1} entryDelay={i} problem={p} solved={solvedIds.has(p.id)} />
                 ))}
               </div>
             )}
@@ -355,7 +362,7 @@ function FilterChip({
   return (
     <button
       onClick={onClick}
-      className="rounded-full px-3 py-1.5 text-[12px] font-medium transition"
+      className="rounded-full px-3 py-1.5 text-[12px] font-medium transition active:scale-95"
       style={
         active
           ? { background: "var(--dojo-accent-soft-bg)", color: "var(--dojo-accent)", boxShadow: "0 0 0 1px rgba(43,149,224,0.4) inset" }
@@ -449,7 +456,7 @@ function ViewToggleButton({
     <button
       onClick={onClick}
       title={title}
-      className="flex items-center justify-center rounded-md p-1.5 transition"
+      className="flex items-center justify-center rounded-md p-1.5 transition active:scale-90"
       style={
         active
           ? { background: "var(--dojo-accent-soft-bg)", color: "var(--dojo-accent)" }
@@ -466,19 +473,25 @@ function ProblemCard({
   solved,
   index,
   compact,
+  entryDelay = 0,
 }: {
   problem: Problem;
   solved: boolean;
   index: number;
   compact?: boolean;
+  entryDelay?: number;
 }) {
   const diffColor = DIFFICULTY_COLOR[problem.difficulty];
 
   return (
     <Link
       to={`/problema/${problem.slug}`}
-      className={`group relative flex flex-col gap-3.5 overflow-hidden rounded-xl bg-dojo-card px-6 py-5 transition-all duration-200 ease-out hover:-translate-y-[3px] hover:bg-dojo-cardHover ${compact ? "h-full" : ""}`}
-      style={{ border: "1px solid var(--dojo-hairline)" }}
+      className={`group animate-dojo-fade relative flex flex-col gap-3.5 overflow-hidden rounded-xl bg-dojo-card px-6 py-5 transition-all duration-200 ease-out hover:-translate-y-[3px] hover:bg-dojo-cardHover active:scale-[0.98] ${compact ? "h-full" : ""}`}
+      style={{
+        border: "1px solid var(--dojo-hairline)",
+        animationDelay: `${Math.min(entryDelay, 12) * 40}ms`,
+        animationFillMode: "backwards",
+      }}
       onMouseEnter={(e) => {
         e.currentTarget.style.border = "1px solid rgba(43,149,224,0.45)";
         e.currentTarget.style.boxShadow = "0 14px 32px rgba(0,0,0,0.25)";

@@ -3,6 +3,7 @@ import type { Session } from "@supabase/supabase-js";
 import { supabase } from "../lib/supabaseClient";
 import type { Profile } from "../lib/types";
 import Header from "../components/Header";
+import Spinner from "../components/Spinner";
 
 interface PlacarPageProps {
   session: Session;
@@ -69,7 +70,8 @@ export default function PlacarPage({ session }: PlacarPageProps) {
 
   if (loading) {
     return (
-      <div className="flex h-screen items-center justify-center bg-dojo-bg font-sans text-sm text-dojo-textDim">
+      <div className="animate-dojo-fade flex h-screen flex-col items-center justify-center gap-3 bg-dojo-bg font-sans text-sm text-dojo-textDim">
+        <Spinner />
         Carregando placar...
       </div>
     );
@@ -92,7 +94,7 @@ export default function PlacarPage({ session }: PlacarPageProps) {
 
           <div className="flex flex-col gap-3">
             {ranking.map((r, i) => (
-              <RankRow key={r.profile.id} rank={i + 1} r={r} totalProblems={totalProblems} isMe={r.profile.id === session.user.id} />
+              <RankRow key={r.profile.id} rank={i + 1} index={i} r={r} totalProblems={totalProblems} isMe={r.profile.id === session.user.id} />
             ))}
           </div>
         </div>
@@ -105,22 +107,34 @@ const MEDAL = ["#f0c674", "#c9c9c9", "#c97b4a"];
 
 function RankRow({
   rank,
+  index,
   r,
   totalProblems,
   isMe,
 }: {
   rank: number;
+  index: number;
   r: Ranking;
   totalProblems: number;
   isMe: boolean;
 }) {
   const pct = totalProblems > 0 ? Math.round((r.solved / totalProblems) * 100) : 0;
   const medal = MEDAL[rank - 1];
+  const [barPct, setBarPct] = useState(0);
+
+  useEffect(() => {
+    const id = requestAnimationFrame(() => setBarPct(pct));
+    return () => cancelAnimationFrame(id);
+  }, [pct]);
 
   return (
     <div
-      className="flex items-center gap-4 rounded-xl bg-dojo-card px-5 py-4"
-      style={{ border: isMe ? "1px solid rgba(43,149,224,0.4)" : "1px solid var(--dojo-hairline)" }}
+      className="animate-dojo-fade flex items-center gap-4 rounded-xl bg-dojo-card px-5 py-4"
+      style={{
+        border: isMe ? "1px solid rgba(43,149,224,0.4)" : "1px solid var(--dojo-hairline)",
+        animationDelay: `${index * 60}ms`,
+        animationFillMode: "backwards",
+      }}
     >
       <span
         className="w-6 flex-none text-center font-mono text-[15px] font-bold"
@@ -152,8 +166,8 @@ function RankRow({
         </div>
         <div className="h-1.5 w-full overflow-hidden rounded-full bg-dojo-surfaceSunken">
           <div
-            className="h-full rounded-full transition-all"
-            style={{ width: `${Math.max(pct, r.solved > 0 ? 4 : 0)}%`, background: "var(--dojo-accent)" }}
+            className="h-full rounded-full transition-[width] duration-700 ease-out"
+            style={{ width: `${Math.max(barPct, r.solved > 0 ? 4 : 0)}%`, background: "var(--dojo-accent)" }}
           />
         </div>
       </div>

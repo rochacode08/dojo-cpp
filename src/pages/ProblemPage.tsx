@@ -9,6 +9,7 @@ import ProblemPanel from "../components/ProblemPanel";
 import CodeEditor from "../components/CodeEditor";
 import TestsPanel from "../components/TestsPanel";
 import Confetti from "../components/Confetti";
+import Spinner from "../components/Spinner";
 
 interface ProblemPageProps {
   session: Session;
@@ -199,7 +200,8 @@ export default function ProblemPage({ session }: ProblemPageProps) {
 
   if (!problem) {
     return (
-      <div className="flex h-screen items-center justify-center bg-dojo-bg font-sans text-sm text-dojo-textDim">
+      <div className="animate-dojo-fade flex h-screen flex-col items-center justify-center gap-3 bg-dojo-bg font-sans text-sm text-dojo-textDim">
+        <Spinner />
         Carregando problema...
       </div>
     );
@@ -248,7 +250,7 @@ export default function ProblemPage({ session }: ProblemPageProps) {
             </span>
             <button
               onClick={room.claimPilot}
-              className="rounded-md bg-dojo-accent px-2.5 py-1 text-[11.5px] font-semibold text-white hover:brightness-110"
+              className="rounded-md bg-dojo-accent px-2.5 py-1 text-[11.5px] font-semibold text-white transition hover:brightness-110 active:scale-95"
             >
               Pegar o volante
             </button>

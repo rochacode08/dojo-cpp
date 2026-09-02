@@ -7,6 +7,7 @@ import HomePage from "./pages/HomePage";
 import ProblemPage from "./pages/ProblemPage";
 import PlacarPage from "./pages/PlacarPage";
 import SubmissionToasts from "./components/SubmissionToasts";
+import Spinner from "./components/Spinner";
 
 export default function App() {
   const [session, setSession] = useState<Session | null>(null);
@@ -27,7 +28,8 @@ export default function App() {
 
   if (loading) {
     return (
-      <div className="flex h-screen items-center justify-center bg-dojo-bg text-dojo-textDim font-sans text-sm">
+      <div className="animate-dojo-fade flex h-screen flex-col items-center justify-center gap-3 bg-dojo-bg text-dojo-textDim font-sans text-sm">
+        <Spinner />
         Carregando...
       </div>
     );

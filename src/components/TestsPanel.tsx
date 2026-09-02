@@ -114,7 +114,7 @@ export default function TestsPanel({ phase, rows, height, canRun, onRun, onReset
             onClick={onReset}
             disabled={!canRun}
             title={canRun ? undefined : "Só o piloto pode reiniciar"}
-            className="inline-flex items-center gap-1.5 rounded-md border border-dojo-border2 bg-dojo-surfaceRaised px-3 py-1.5 font-sans text-[12.5px] text-dojo-text transition hover:bg-dojo-surfaceHover hover:text-dojo-textBright disabled:cursor-not-allowed disabled:opacity-40 disabled:hover:bg-dojo-surfaceRaised"
+            className="inline-flex items-center gap-1.5 rounded-md border border-dojo-border2 bg-dojo-surfaceRaised px-3 py-1.5 font-sans text-[12.5px] text-dojo-text transition hover:bg-dojo-surfaceHover hover:text-dojo-textBright active:scale-95 disabled:cursor-not-allowed disabled:opacity-40 disabled:hover:bg-dojo-surfaceRaised disabled:active:scale-100"
           >
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
               <path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8" />
@@ -126,7 +126,7 @@ export default function TestsPanel({ phase, rows, height, canRun, onRun, onReset
             onClick={onRun}
             disabled={running || !canRun}
             title={canRun ? "Atalho: Ctrl+Enter" : "Só o piloto pode executar"}
-            className="inline-flex items-center gap-2 rounded-md px-4 py-2 font-sans text-[13px] font-semibold text-white transition hover:brightness-110 disabled:cursor-not-allowed disabled:hover:brightness-100"
+            className="inline-flex items-center gap-2 rounded-md px-4 py-2 font-sans text-[13px] font-semibold text-white transition hover:brightness-110 active:scale-[0.97] disabled:cursor-not-allowed disabled:hover:brightness-100 disabled:active:scale-100"
             style={{
               background: running || !canRun ? "var(--dojo-surface-raised)" : "#2ea043",
               border: `1px solid ${running || !canRun ? "var(--dojo-border2)" : "rgba(255,255,255,0.14)"}`,
@@ -175,7 +175,11 @@ export default function TestsPanel({ phase, rows, height, canRun, onRun, onReset
               row.status === "ERRO DE COMPILAÇÃO" && firstCompileErrorIndex !== i;
 
             return (
-            <div key={i} className="animate-dojo-fade border-b border-dojo-border py-[7px]">
+            <div
+              key={i}
+              className="animate-dojo-fade border-b border-dojo-border py-[7px]"
+              style={{ animationDelay: `${Math.min(i, 15) * 35}ms`, animationFillMode: "backwards" }}
+            >
               <div className="flex items-center gap-2.5">
                 <span className="flex w-3.5 items-center" style={{ color: row.passed ? "var(--dojo-green-bright)" : "var(--dojo-red)" }}>
                   {row.passed ? <Check /> : <Cross />}

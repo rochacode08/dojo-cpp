@@ -178,7 +178,7 @@ export default function LoginPage() {
         </div>
 
         {error && (
-          <div className="rounded-lg border border-dojo-red/30 bg-[#241010] px-3 py-2 text-[12px] text-dojo-red">
+          <div className="animate-dojo-fade rounded-lg border border-dojo-red/30 bg-[#241010] px-3 py-2 text-[12px] text-dojo-red">
             {error}
           </div>
         )}
@@ -186,7 +186,7 @@ export default function LoginPage() {
         <button
           type="submit"
           disabled={loading}
-          className="mt-1 rounded-lg py-2.5 text-[13.5px] font-semibold text-white transition hover:brightness-110 disabled:cursor-not-allowed disabled:opacity-60"
+          className="mt-1 rounded-lg py-2.5 text-[13.5px] font-semibold text-white transition hover:brightness-110 active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-60"
           style={{ background: "#2b95e0", boxShadow: "0 0 0 1px rgba(255,255,255,0.12), 0 6px 20px rgba(43,149,224,0.35)" }}
         >
           {loading ? "Entrando..." : "Entrar"}

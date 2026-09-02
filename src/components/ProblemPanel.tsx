@@ -95,7 +95,7 @@ export default function ProblemPanel({ problem, sampleTests, history = [], profi
           <button
             onClick={() => setMode((m) => (m === "statement" ? "notes" : "statement"))}
             title={mode === "statement" ? "Abrir rascunho pessoal" : "Voltar pro enunciado"}
-            className="flex flex-none items-center gap-1.5 rounded-md border border-dojo-border2 bg-dojo-surfaceRaised px-2.5 py-1 text-[11px] font-medium text-dojo-textDim transition hover:bg-dojo-surfaceHover hover:text-dojo-textBright"
+            className="flex flex-none items-center gap-1.5 rounded-md border border-dojo-border2 bg-dojo-surfaceRaised px-2.5 py-1 text-[11px] font-medium text-dojo-textDim transition hover:bg-dojo-surfaceHover hover:text-dojo-textBright active:scale-95"
           >
             {mode === "statement" ? (
               <>
@@ -110,7 +110,7 @@ export default function ProblemPanel({ problem, sampleTests, history = [], profi
         </div>
 
         {mode === "statement" ? (
-          <>
+          <div key="statement" className="animate-dojo-fade flex flex-col gap-[22px]">
             <div className="flex flex-col gap-3.5 text-sm leading-[1.68] text-dojo-text">
               {problem.description.split("\n\n").map((p, i) => (
                 <p key={i} className="m-0">
@@ -141,9 +141,9 @@ export default function ProblemPanel({ problem, sampleTests, history = [], profi
                 </div>
               ))}
             </div>
-          </>
+          </div>
         ) : (
-          <div className="flex flex-col gap-2">
+          <div key="notes" className="animate-dojo-fade flex flex-col gap-2">
             <span className="flex items-center gap-1.5 text-[11px] font-semibold uppercase tracking-[0.06em] text-dojo-textDim">
               <NotebookIcon />
               Rascunho — só você vê isso, fica salvo neste navegador
@@ -256,7 +256,7 @@ function HintsBox({ hints }: { hints: string[] }) {
       {!allRevealed && (
         <button
           onClick={() => setRevealed((r) => r + 1)}
-          className="flex items-center justify-center gap-1.5 self-start rounded-lg border border-dojo-border2 bg-dojo-surfaceRaised px-3.5 py-2 text-[12.5px] font-medium text-dojo-textDim transition hover:bg-dojo-surfaceHover hover:text-dojo-textBright"
+          className="flex items-center justify-center gap-1.5 self-start rounded-lg border border-dojo-border2 bg-dojo-surfaceRaised px-3.5 py-2 text-[12.5px] font-medium text-dojo-textDim transition hover:bg-dojo-surfaceHover hover:text-dojo-textBright active:scale-95"
         >
           <LightbulbIcon />
           Mostrar dica {revealed + 1} de {hints.length}

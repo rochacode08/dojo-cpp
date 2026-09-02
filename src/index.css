@@ -89,6 +89,25 @@ body {
   box-sizing: border-box;
 }
 
+/* Transição suave ao trocar de tema claro/escuro, em vez de trocar as cores
+   de repente. Elementos que já têm sua própria transição via Tailwind
+   (hover, etc.) continuam usando a deles, mais específica que esta. */
+*,
+*::before,
+*::after {
+  transition: background-color 200ms ease, border-color 200ms ease, color 200ms ease, fill 200ms ease, stroke 200ms ease;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+  }
+}
+
 ::selection {
   background: #2b5f8a;
 }
