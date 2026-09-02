@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import type { Difficulty, Problem, Profile, SubmissionHistoryEntry, SubmissionStatus, TestCase } from "../lib/types";
 
 const DIFFICULTY_PALETTE: Record<Difficulty, [string, string, string]> = {
@@ -43,6 +43,18 @@ interface ProblemPanelProps {
 
 export default function ProblemPanel({ problem, sampleTests, history = [], profiles = [] }: ProblemPanelProps) {
   const [diffBg, diffFg, diffBorder] = DIFFICULTY_PALETTE[problem.difficulty];
+  const [mode, setMode] = useState<"statement" | "notes">("statement");
+  const [notes, setNotes] = useState("");
+
+  useEffect(() => {
+    setMode("statement");
+    setNotes(localStorage.getItem(`dojo-notes-${problem.id}`) ?? "");
+  }, [problem.id]);
+
+  function handleNotesChange(value: string) {
+    setNotes(value);
+    localStorage.setItem(`dojo-notes-${problem.id}`, value);
+  }
 
   return (
     <section className="min-h-0 overflow-y-auto border-b border-dojo-border bg-dojo-bg md:border-b-0 md:border-r">
@@ -78,38 +90,72 @@ export default function ProblemPanel({ problem, sampleTests, history = [], profi
           </div>
         </div>
 
-        <div className="h-px bg-dojo-border" />
-
-        <div className="flex flex-col gap-3.5 text-sm leading-[1.68] text-dojo-text">
-          {problem.description.split("\n\n").map((p, i) => (
-            <p key={i} className="m-0">
-              {p}
-            </p>
-          ))}
+        <div className="flex items-center gap-3">
+          <div className="h-px flex-1 bg-dojo-border" />
+          <button
+            onClick={() => setMode((m) => (m === "statement" ? "notes" : "statement"))}
+            title={mode === "statement" ? "Abrir rascunho pessoal" : "Voltar pro enunciado"}
+            className="flex flex-none items-center gap-1.5 rounded-md border border-dojo-border2 bg-dojo-surfaceRaised px-2.5 py-1 text-[11px] font-medium text-dojo-textDim transition hover:bg-dojo-surfaceHover hover:text-dojo-textBright"
+          >
+            {mode === "statement" ? (
+              <>
+                <NotebookIcon /> Rascunho
+              </>
+            ) : (
+              <>
+                <DocIcon /> Enunciado
+              </>
+            )}
+          </button>
         </div>
 
-        <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
-          {sampleTests.map((tc) => (
-            <div key={tc.id} className="overflow-hidden rounded-lg border border-dojo-border2 bg-dojo-surfaceSunken">
-              <div className="border-b border-dojo-border2 bg-dojo-surfaceRaised px-3 py-2 text-[11px] font-semibold tracking-[0.04em] text-dojo-textDim">
-                ENTRADA
-              </div>
-              <pre className="m-0 p-3 font-mono text-[12.5px] leading-[1.7] text-dojo-text">
-                {tc.input}
-              </pre>
+        {mode === "statement" ? (
+          <>
+            <div className="flex flex-col gap-3.5 text-sm leading-[1.68] text-dojo-text">
+              {problem.description.split("\n\n").map((p, i) => (
+                <p key={i} className="m-0">
+                  {p}
+                </p>
+              ))}
             </div>
-          ))}
-          {sampleTests.map((tc) => (
-            <div key={tc.id + "-out"} className="overflow-hidden rounded-lg border border-dojo-border2 bg-dojo-surfaceSunken">
-              <div className="border-b border-dojo-border2 bg-dojo-surfaceRaised px-3 py-2 text-[11px] font-semibold tracking-[0.04em] text-dojo-textDim">
-                SAÍDA
-              </div>
-              <pre className="m-0 p-3 font-mono text-[12.5px] leading-[1.7]" style={{ color: "var(--dojo-code-output)" }}>
-                {tc.expected_output}
-              </pre>
+
+            <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+              {sampleTests.map((tc) => (
+                <div key={tc.id} className="overflow-hidden rounded-lg border border-dojo-border2 bg-dojo-surfaceSunken">
+                  <div className="border-b border-dojo-border2 bg-dojo-surfaceRaised px-3 py-2 text-[11px] font-semibold tracking-[0.04em] text-dojo-textDim">
+                    ENTRADA
+                  </div>
+                  <pre className="m-0 p-3 font-mono text-[12.5px] leading-[1.7] text-dojo-text">
+                    {tc.input}
+                  </pre>
+                </div>
+              ))}
+              {sampleTests.map((tc) => (
+                <div key={tc.id + "-out"} className="overflow-hidden rounded-lg border border-dojo-border2 bg-dojo-surfaceSunken">
+                  <div className="border-b border-dojo-border2 bg-dojo-surfaceRaised px-3 py-2 text-[11px] font-semibold tracking-[0.04em] text-dojo-textDim">
+                    SAÍDA
+                  </div>
+                  <pre className="m-0 p-3 font-mono text-[12.5px] leading-[1.7]" style={{ color: "var(--dojo-code-output)" }}>
+                    {tc.expected_output}
+                  </pre>
+                </div>
+              ))}
             </div>
-          ))}
-        </div>
+          </>
+        ) : (
+          <div className="flex flex-col gap-2">
+            <span className="flex items-center gap-1.5 text-[11px] font-semibold uppercase tracking-[0.06em] text-dojo-textDim">
+              <NotebookIcon />
+              Rascunho — só você vê isso, fica salvo neste navegador
+            </span>
+            <textarea
+              value={notes}
+              onChange={(e) => handleNotesChange(e.target.value)}
+              placeholder="Rascunhe aqui: ideias, pseudocódigo, contas..."
+              className="min-h-[320px] w-full resize-y rounded-lg border border-dojo-border2 bg-dojo-surfaceSunken p-4 font-mono text-[13px] leading-[1.8] text-dojo-text outline-none transition focus:ring-2 focus:ring-dojo-accent"
+            />
+          </div>
+        )}
 
         {problem.hints.length > 0 && <HintsBox key={problem.id} hints={problem.hints} />}
 
@@ -148,6 +194,26 @@ export default function ProblemPanel({ problem, sampleTests, history = [], profi
         )}
       </div>
     </section>
+  );
+}
+
+function NotebookIcon() {
+  return (
+    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M4 3h13a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H4V3Z" />
+      <path d="M4 7h1M4 11h1M4 15h1M4 19h1" />
+      <path d="M9 8h7M9 12h7M9 16h4" />
+    </svg>
+  );
+}
+
+function DocIcon() {
+  return (
+    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8Z" />
+      <path d="M14 2v6h6" />
+      <path d="M9 13h6M9 17h6" />
+    </svg>
   );
 }
 
