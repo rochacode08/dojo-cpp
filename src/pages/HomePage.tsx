@@ -132,7 +132,12 @@ export default function HomePage({ session }: HomePageProps) {
   const filtered = useMemo(() => {
     const q = search.trim().toLowerCase();
     const result = problems.filter((p) => {
-      if (q && !p.title.toLowerCase().includes(q)) return false;
+      if (q) {
+        const matchesTitle = p.title.toLowerCase().includes(q);
+        const matchesDescription = p.description.toLowerCase().includes(q);
+        const matchesTag = p.tags.some((t) => t.toLowerCase().includes(q));
+        if (!matchesTitle && !matchesDescription && !matchesTag) return false;
+      }
       if (difficulties.size > 0 && !difficulties.has(p.difficulty)) return false;
       if (tags.size > 0 && !p.tags.some((t) => tags.has(t))) return false;
       const solved = solvedIds.has(p.id);
@@ -230,7 +235,7 @@ export default function HomePage({ session }: HomePageProps) {
             <input
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              placeholder="Buscar um problema..."
+              placeholder="Buscar por título, tema ou enunciado..."
               className="w-full rounded-xl bg-dojo-panel py-3.5 pl-11 pr-4 text-[14.5px] text-dojo-text outline-none ring-1 ring-inset ring-white/[0.06] transition focus:ring-2 focus:ring-dojo-accent"
             />
           </div>
