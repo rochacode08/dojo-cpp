@@ -1,17 +1,26 @@
-// Supabase Edge Function: recebe { problem_id, code, mode }, roda os casos de
+// Supabase Edge Function: recebe { problem_id, code, mode, language }, roda os casos de
 // teste na Wandbox (https://wandbox.org, compilador online público mantido
 // pela comunidade C++ — gratuito, sem chave, sem cartão) e devolve o resultado
 // no formato que o TestsPanel espera.
 //
 // mode = "test"   -> roda só os casos de exemplo, NÃO registra submissão
 // mode = "submit" -> roda todos os casos e registra a submissão (padrão)
+//
+// language = "cpp" (padrão) ou "c" — muda o compilador pedido à Wandbox.
 
 import { createClient } from "jsr:@supabase/supabase-js@2";
 
 const WANDBOX_URL = "https://wandbox.org/api/compile.json";
-const WANDBOX_COMPILER = "gcc-13.2.0";
-const WANDBOX_OPTIONS = "c++17";
 const WANDBOX_TIMEOUT_MS = 15000;
+
+type Language = "cpp" | "c";
+
+// Nomes exatos aceitos pela Wandbox (ver https://wandbox.org/api/list.json):
+// o compilador de C é uma entrada separada, com sufixo "-c" e padrões "cNN".
+const COMPILERS: Record<Language, { compiler: string; options: string }> = {
+  cpp: { compiler: "gcc-13.2.0", options: "c++17" },
+  c: { compiler: "gcc-13.2.0-c", options: "c11" },
+};
 
 const CORS_HEADERS = {
   "Access-Control-Allow-Origin": "*",
@@ -55,11 +64,12 @@ Deno.serve(async (req) => {
 
     const db = createClient(supabaseUrl, serviceRoleKey);
 
-    const { problem_id, code, mode: rawMode } = await req.json();
+    const { problem_id, code, mode: rawMode, language: rawLanguage } = await req.json();
     if (!problem_id || typeof code !== "string") {
       return json({ error: "problem_id e code são obrigatórios" }, 400);
     }
     const mode: "test" | "submit" = rawMode === "test" ? "test" : "submit";
+    const language: Language = rawLanguage === "c" ? "c" : "cpp";
 
     let query = db
       .from("test_cases")
@@ -88,7 +98,7 @@ Deno.serve(async (req) => {
     // público gratuito da Wandbox.
     const results = [];
     for (let i = 0; i < testCases.length; i++) {
-      results.push(await runOne(code, testCases[i] as TestCase, i));
+      results.push(await runOne(code, testCases[i] as TestCase, i, language));
     }
 
     // Falha de infraestrutura (timeout ou erro de rede com o compilador
@@ -115,19 +125,21 @@ Deno.serve(async (req) => {
         user_id: userId,
         problem_id,
         code,
+        language,
         status,
         results,
       });
     }
 
-    return json({ status, results, mode });
+    return json({ status, results, mode, language });
   } catch (err) {
     return json({ error: String(err) }, 500);
   }
 });
 
-async function runOne(code: string, tc: TestCase, index: number) {
+async function runOne(code: string, tc: TestCase, index: number, language: Language) {
   const name = `caso #${index + 1}`;
+  const { compiler, options } = COMPILERS[language];
 
   const controller = new AbortController();
   const timeoutId = setTimeout(() => controller.abort(), WANDBOX_TIMEOUT_MS);
@@ -138,10 +150,10 @@ async function runOne(code: string, tc: TestCase, index: number) {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
-        compiler: WANDBOX_COMPILER,
+        compiler,
         code,
         stdin: tc.input,
-        options: WANDBOX_OPTIONS,
+        options,
       }),
       signal: controller.signal,
     });

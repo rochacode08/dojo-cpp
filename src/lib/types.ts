@@ -41,6 +41,10 @@ export type SubmissionStatus =
  *  "submit" roda todos os casos e registra a submissão. */
 export type RunMode = "test" | "submit";
 
+/** Linguagem do envio. A turma usa C++ na maioria das listas, mas algumas
+ *  disciplinas ainda pedem C puro. Ver `lib/languages.ts`. */
+export type Language = "cpp" | "c";
+
 export interface TestResultRow {
   name: string;
   passed: boolean;
@@ -59,6 +63,7 @@ export interface RunCodeResponse {
   status: SubmissionStatus;
   results: TestResultRow[];
   mode: RunMode;
+  language: Language;
 }
 
 export interface SubmissionHistoryEntry {
@@ -66,4 +71,5 @@ export interface SubmissionHistoryEntry {
   user_id: string;
   status: SubmissionStatus;
   created_at: string;
+  language?: Language;
 }

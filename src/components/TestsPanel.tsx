@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
-import type { RunMode, TestResultRow } from "../lib/types";
+import type { Language, RunMode, TestResultRow } from "../lib/types";
+import { LANGUAGES } from "../lib/languages";
 
 type Phase = "idle" | "running" | "result";
 
@@ -36,6 +37,7 @@ interface TestsPanelProps {
   phase: Phase;
   rows: TestResultRow[];
   mode: RunMode;
+  language: Language;
   height: number;
   canRun: boolean;
   onRun: (mode: RunMode) => void;
@@ -83,6 +85,7 @@ export default function TestsPanel({
   phase,
   rows,
   mode,
+  language,
   height,
   canRun,
   onRun,
@@ -91,6 +94,7 @@ export default function TestsPanel({
   onResizeStep,
 }: TestsPanelProps) {
   const running = phase === "running";
+  const compiler = LANGUAGES[language].compilerLabel;
   const passed = rows.filter((r) => r.passed).length;
   const [selected, setSelected] = useState(0);
 
@@ -128,12 +132,12 @@ export default function TestsPanel({
           </svg>
           <span>
             {running
-              ? "compilando com GCC 13.2 (C++17)"
+              ? `compilando com ${compiler}`
               : phase === "idle"
-                ? "nenhuma execução nesta sessão"
+                ? `nenhuma execução nesta sessão · ${compiler}`
                 : mode === "test"
-                  ? "último teste nos exemplos · GCC 13.2 (C++17)"
-                  : "último envio · GCC 13.2 (C++17)"}
+                  ? `último teste nos exemplos · ${compiler}`
+                  : `último envio · ${compiler}`}
           </span>
         </div>
         <div className="flex items-center gap-2">

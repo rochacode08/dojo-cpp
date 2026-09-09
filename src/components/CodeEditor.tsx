@@ -1,6 +1,8 @@
 import { useEffect, useRef, useState } from "react";
 import Editor, { type BeforeMount, type Monaco, type OnMount } from "@monaco-editor/react";
 import type { editor as MonacoEditorNS, Position } from "monaco-editor";
+import type { Language } from "../lib/types";
+import { LANGUAGES, LANGUAGE_IDS } from "../lib/languages";
 
 interface RemoteCursor {
   lineNumber: number;
@@ -10,6 +12,8 @@ interface RemoteCursor {
 
 interface CodeEditorProps {
   code: string;
+  language: Language;
+  onLanguageChange: (language: Language) => void;
   onChange: (value: string) => void;
   readOnly?: boolean;
   onCursorChange?: (lineNumber: number, column: number) => void;
@@ -25,7 +29,7 @@ interface SnippetDef {
 // Trechos comuns de C++ básico/CS1 — não é IntelliSense de verdade (isso
 // exigiria um language server como o clangd rodando em algum lugar), só um
 // atalho pra não digitar de novo os padrões mais repetidos do curso.
-const SNIPPETS: SnippetDef[] = [
+const CPP_SNIPPETS: SnippetDef[] = [
   { label: "main", detail: "Esqueleto de função main", insertText: "int main() {\n\t${0}\n\treturn 0;\n}" },
   { label: "incliostream", detail: "#include <iostream>", insertText: "#include <iostream>" },
   { label: "inclvector", detail: "#include <vector>", insertText: "#include <vector>" },
@@ -63,32 +67,65 @@ const SNIPPETS: SnippetDef[] = [
   { label: "setprecision", detail: "cout com casas decimais fixas", insertText: "cout << fixed << setprecision(${1:2});" },
 ];
 
+// Os equivalentes em C puro: sem iostream, sem vector, sem string — aqui e
+// stdio.h, scanf/printf e vetores estaticos.
+const C_SNIPPETS: SnippetDef[] = [
+  { label: "main", detail: "Esqueleto de função main", insertText: "int main() {\n\t${0}\n\treturn 0;\n}" },
+  { label: "inclstdio", detail: "#include <stdio.h>", insertText: "#include <stdio.h>" },
+  { label: "inclstdlib", detail: "#include <stdlib.h>", insertText: "#include <stdlib.h>" },
+  { label: "inclstring", detail: "#include <string.h>", insertText: "#include <string.h>" },
+  { label: "inclmath", detail: "#include <math.h>", insertText: "#include <math.h>" },
+  {
+    label: "for",
+    detail: "Loop for clássico",
+    insertText: "for (int ${1:i} = 0; ${1:i} < ${2:n}; ${1:i}++) {\n\t${0}\n}",
+  },
+  { label: "while", detail: "Loop while", insertText: "while (${1:condicao}) {\n\t${0}\n}" },
+  { label: "ifelse", detail: "if / else", insertText: "if (${1:condicao}) {\n\t${2}\n} else {\n\t${0}\n}" },
+  { label: "scanfint", detail: "Ler um inteiro", insertText: "scanf(\"%d\", &${0:variavel});" },
+  { label: "scanffloat", detail: "Ler um float", insertText: "scanf(\"%f\", &${0:variavel});" },
+  { label: "scanfstring", detail: "Ler uma string", insertText: "scanf(\"%s\", ${0:texto});" },
+  { label: "printfint", detail: "Imprimir inteiro com quebra de linha", insertText: "printf(\"%d\\n\", ${0:valor});" },
+  { label: "printffloat", detail: "Imprimir float com casas decimais", insertText: "printf(\"%.${1:2}f\\n\", ${0:valor});" },
+  { label: "printfstring", detail: "Imprimir texto com quebra de linha", insertText: "printf(\"%s\\n\", ${0:texto});" },
+  { label: "vetorint", detail: "Vetor estático de inteiros", insertText: "int ${1:v}[${2:100}];" },
+  { label: "vetorchar", detail: "Vetor de caracteres (string em C)", insertText: "char ${1:texto}[${2:100}];" },
+  { label: "struct", detail: "Esqueleto de struct", insertText: "struct ${1:Nome} {\n\t${0}\n};" },
+];
+
+const SNIPPETS_BY_LANGUAGE: Record<string, SnippetDef[]> = {
+  cpp: CPP_SNIPPETS,
+  c: C_SNIPPETS,
+};
+
 let completionsRegistered = false;
 
 function registerCompletions(monaco: Monaco) {
   if (completionsRegistered) return;
   completionsRegistered = true;
-  monaco.languages.registerCompletionItemProvider("cpp", {
-    provideCompletionItems(model: MonacoEditorNS.ITextModel, position: Position) {
-      const word = model.getWordUntilPosition(position);
-      const range = {
-        startLineNumber: position.lineNumber,
-        endLineNumber: position.lineNumber,
-        startColumn: word.startColumn,
-        endColumn: word.endColumn,
-      };
-      return {
-        suggestions: SNIPPETS.map((s) => ({
-          label: s.label,
-          kind: monaco.languages.CompletionItemKind.Snippet,
-          detail: s.detail,
-          insertText: s.insertText,
-          insertTextRules: monaco.languages.CompletionItemInsertTextRule.InsertAsSnippet,
-          range,
-        })),
-      };
-    },
-  });
+  for (const [monacoId, snippets] of Object.entries(SNIPPETS_BY_LANGUAGE)) {
+    monaco.languages.registerCompletionItemProvider(monacoId, {
+      provideCompletionItems(model: MonacoEditorNS.ITextModel, position: Position) {
+        const word = model.getWordUntilPosition(position);
+        const range = {
+          startLineNumber: position.lineNumber,
+          endLineNumber: position.lineNumber,
+          startColumn: word.startColumn,
+          endColumn: word.endColumn,
+        };
+        return {
+          suggestions: snippets.map((s) => ({
+            label: s.label,
+            kind: monaco.languages.CompletionItemKind.Snippet,
+            detail: s.detail,
+            insertText: s.insertText,
+            insertTextRules: monaco.languages.CompletionItemInsertTextRule.InsertAsSnippet,
+            range,
+          })),
+        };
+      },
+    });
+  }
 }
 
 const handleBeforeMount: BeforeMount = (monaco) => {
@@ -157,7 +194,16 @@ function MoonIcon() {
   );
 }
 
-export default function CodeEditor({ code, onChange, readOnly, onCursorChange, remoteCursor }: CodeEditorProps) {
+export default function CodeEditor({
+  code,
+  language,
+  onLanguageChange,
+  onChange,
+  readOnly,
+  onCursorChange,
+  remoteCursor,
+}: CodeEditorProps) {
+  const languageDef = LANGUAGES[language];
   const [light, setLight] = useState(false);
   const editorRef = useRef<MonacoEditorNS.IStandaloneCodeEditor | null>(null);
   const monacoRef = useRef<Monaco | null>(null);
@@ -230,9 +276,36 @@ export default function CodeEditor({ code, onChange, readOnly, onCursorChange, r
   return (
     <div className="flex h-[50vh] flex-none flex-col bg-dojo-bg md:h-auto md:min-h-0 md:flex-1">
       <div className="flex h-[38px] flex-none items-stretch justify-between border-b border-dojo-border bg-dojo-panel">
-        <div className="flex items-center gap-2 border-r border-dojo-border bg-dojo-bg px-3.5 text-[12.5px] text-dojo-textBright" style={{ borderTop: "1px solid var(--dojo-accent)" }}>
-          <span className="font-mono text-[11px]" style={{ color: "var(--dojo-accent)" }}>C++</span>
-          main.cpp
+        <div className="flex items-center gap-2.5 border-r border-dojo-border bg-dojo-bg px-3.5 text-[12.5px] text-dojo-textBright" style={{ borderTop: "1px solid var(--dojo-accent)" }}>
+          <div className="flex items-center gap-0.5 rounded-md bg-dojo-surfaceSunken p-0.5" role="group" aria-label="Linguagem">
+            {LANGUAGE_IDS.map((id) => {
+              const active = id === language;
+              return (
+                <button
+                  key={id}
+                  type="button"
+                  onClick={() => !readOnly && onLanguageChange(id)}
+                  aria-pressed={active}
+                  aria-disabled={readOnly}
+                  title={
+                    readOnly
+                      ? "Só o piloto pode trocar a linguagem"
+                      : `Escrever em ${LANGUAGES[id].label} (${LANGUAGES[id].compilerLabel})`
+                  }
+                  className={`rounded px-2 py-[3px] font-mono text-[11px] font-semibold transition ${
+                    readOnly ? "pointer-events-none cursor-not-allowed opacity-50" : ""
+                  }`}
+                  style={{
+                    background: active ? "var(--dojo-accent-solid)" : "transparent",
+                    color: active ? "#ffffff" : "var(--dojo-text-dim)",
+                  }}
+                >
+                  {LANGUAGES[id].label}
+                </button>
+              );
+            })}
+          </div>
+          {languageDef.fileName}
         </div>
         <button
           onClick={() => setLight((v) => !v)}
@@ -247,7 +320,7 @@ export default function CodeEditor({ code, onChange, readOnly, onCursorChange, r
       <div className="min-h-0 flex-1">
         <Editor
           height="100%"
-          defaultLanguage="cpp"
+          language={languageDef.monacoId}
           defaultValue={code}
           theme={light ? "dojo-light" : "dojo-dark"}
           beforeMount={handleBeforeMount}

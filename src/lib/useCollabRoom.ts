@@ -1,7 +1,8 @@
 import { useEffect, useRef, useState } from "react";
 import type { RealtimeChannel } from "@supabase/supabase-js";
 import { supabase } from "./supabaseClient";
-import type { RunMode, TestResultRow } from "./types";
+import type { Language, RunMode, TestResultRow } from "./types";
+import { isLanguage, isUntouchedStarter, starterFor } from "./languages";
 
 export interface RoomState {
   code: string;
@@ -9,6 +10,8 @@ export interface RoomState {
   rows: TestResultRow[];
   /** Se a última execução foi "Testar" (só exemplos) ou "Enviar" (tudo). */
   mode: RunMode;
+  /** Linguagem atual da sala — todo mundo edita o mesmo arquivo. */
+  language: Language;
 }
 
 export interface CursorPosition {
@@ -48,7 +51,13 @@ function computePilotId(
 export function useCollabRoom(problemId: string | null, userId: string, starterCode: string) {
   const [participantIds, setParticipantIds] = useState<string[]>([]);
   const [pilotId, setPilotId] = useState<string | null>(null);
-  const [state, setState] = useState<RoomState>({ code: starterCode, phase: "idle", rows: [], mode: "test" });
+  const [state, setState] = useState<RoomState>({
+    code: starterCode,
+    phase: "idle",
+    rows: [],
+    mode: "test",
+    language: "cpp",
+  });
   const [pilotCursor, setPilotCursor] = useState<CursorPosition | null>(null);
 
   const channelRef = useRef<RealtimeChannel | null>(null);
@@ -71,7 +80,7 @@ export function useCollabRoom(problemId: string | null, userId: string, starterC
     hasReceivedStateRef.current = false;
     overridePilotRef.current = null;
     pilotIdRef.current = null;
-    setState({ code: starterCode, phase: "idle", rows: [], mode: "test" });
+    setState({ code: starterCode, phase: "idle", rows: [], mode: "test", language: "cpp" });
     setPilotCursor(null);
 
     const channel = supabase.channel(`problem:${problemId}`, {
@@ -122,13 +131,20 @@ export function useCollabRoom(problemId: string | null, userId: string, starterC
 
             const { data, error } = await supabase
               .from("problem_drafts")
-              .select("code")
+              .select("code, language")
               .eq("problem_id", problemId)
               .maybeSingle();
 
             if (error) console.error("erro ao buscar rascunho salvo:", error);
             if (!hasReceivedStateRef.current) {
-              setState({ code: data?.code ?? starterCode, phase: "idle", rows: [], mode: "test" });
+              const savedLanguage = isLanguage(data?.language) ? data.language : "cpp";
+              setState({
+                code: data?.code ?? starterFor(savedLanguage, starterCode),
+                phase: "idle",
+                rows: [],
+                mode: "test",
+                language: savedLanguage,
+              });
             }
           }, STATE_REQUEST_TIMEOUT_MS);
         }
@@ -159,11 +175,15 @@ export function useCollabRoom(problemId: string | null, userId: string, starterC
     }, CURSOR_BROADCAST_DEBOUNCE_MS);
   }
 
-  async function persistDraft(code: string) {
+  async function persistDraft(code: string, language: Language) {
     if (!problemId) return;
-    const { error } = await supabase
-      .from("problem_drafts")
-      .upsert({ problem_id: problemId, code, updated_by: userId, updated_at: new Date().toISOString() });
+    const { error } = await supabase.from("problem_drafts").upsert({
+      problem_id: problemId,
+      code,
+      language,
+      updated_by: userId,
+      updated_at: new Date().toISOString(),
+    });
     if (error) console.error("erro ao salvar rascunho:", error);
   }
 
@@ -173,7 +193,7 @@ export function useCollabRoom(problemId: string | null, userId: string, starterC
       if (codeDebounceRef.current) clearTimeout(codeDebounceRef.current);
       codeDebounceRef.current = setTimeout(() => {
         broadcastState(next);
-        persistDraft(code);
+        persistDraft(code, next.language);
       }, CODE_BROADCAST_DEBOUNCE_MS);
       return next;
     });
@@ -195,11 +215,29 @@ export function useCollabRoom(problemId: string | null, userId: string, starterC
     });
   }
 
-  function resetRoom(code: string) {
-    const next: RoomState = { code, phase: "idle", rows: [], mode: "test" };
-    setState(next);
-    broadcastState(next);
-    persistDraft(code);
+  function resetRoom(problemStarterCode: string) {
+    setState((prev) => {
+      const code = starterFor(prev.language, problemStarterCode);
+      const next: RoomState = { ...prev, code, phase: "idle", rows: [], mode: "test" };
+      broadcastState(next);
+      persistDraft(code, next.language);
+      return next;
+    });
+  }
+
+  // Trocar de linguagem troca também o esqueleto — mas só se ninguém tiver
+  // escrito nada ainda, senão a troca apagaria a solução em andamento.
+  function setLanguage(language: Language, problemStarterCode: string) {
+    setState((prev) => {
+      if (prev.language === language) return prev;
+      const code = isUntouchedStarter(prev.code, problemStarterCode)
+        ? starterFor(language, problemStarterCode)
+        : prev.code;
+      const next: RoomState = { ...prev, language, code, phase: "idle", rows: [] };
+      broadcastState(next);
+      persistDraft(code, language);
+      return next;
+    });
   }
 
   function claimPilot() {
@@ -221,6 +259,7 @@ export function useCollabRoom(problemId: string | null, userId: string, starterC
     setRunning,
     setResult,
     resetRoom,
+    setLanguage,
     claimPilot,
     broadcastCursor,
   };

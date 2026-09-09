@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import type { Difficulty, Problem, Profile, SubmissionHistoryEntry, SubmissionStatus, TestCase } from "../lib/types";
+import { LANGUAGES } from "../lib/languages";
 
 const DIFFICULTY_PALETTE: Record<Difficulty, [string, string, string]> = {
   Fácil: ["rgba(35,134,54,0.16)", "#5ac37a", "rgba(90,195,122,0.35)"],
@@ -186,6 +187,11 @@ export default function ProblemPanel({ problem, sampleTests, history = [], profi
                     <span className="min-w-0 flex-1 truncate text-dojo-text">
                       {profile?.display_name ?? "alguém"}
                     </span>
+                    {h.language && (
+                      <span className="flex-none rounded border border-dojo-border2 px-1.5 py-[1px] font-mono text-[10px] text-dojo-textFaint">
+                        {LANGUAGES[h.language].label}
+                      </span>
+                    )}
                     <span className="flex-none font-medium" style={{ color: STATUS_COLOR[h.status] }}>
                       {STATUS_LABEL[h.status]}
                     </span>

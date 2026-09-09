@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import { useParams } from "react-router-dom";
 import type { Session } from "@supabase/supabase-js";
 import { supabase } from "../lib/supabaseClient";
-import type { Problem, Profile, RunCodeResponse, RunMode, SubmissionHistoryEntry, TestCase } from "../lib/types";
+import type { Language, Problem, Profile, RunCodeResponse, RunMode, SubmissionHistoryEntry, TestCase } from "../lib/types";
 import { useCollabRoom } from "../lib/useCollabRoom";
 import Header from "../components/Header";
 import ProblemPanel from "../components/ProblemPanel";
@@ -82,7 +82,7 @@ export default function ProblemPage({ session }: ProblemPageProps) {
   async function fetchHistory(problemId: string) {
     const { data, error } = await supabase
       .from("submissions")
-      .select("id, user_id, status, created_at")
+      .select("id, user_id, status, created_at, language")
       .eq("problem_id", problemId)
       .order("created_at", { ascending: false })
       .limit(15);
@@ -102,7 +102,7 @@ export default function ProblemPage({ session }: ProblemPageProps) {
     let error: { message: string } | null = null;
     try {
       const res = await supabase.functions.invoke<RunCodeResponse>("run-code", {
-        body: { problem_id: problem.id, code: room.state.code, mode },
+        body: { problem_id: problem.id, code: room.state.code, mode, language: room.state.language },
         signal: controller.signal,
       });
       data = res.data;
@@ -174,6 +174,10 @@ export default function ProblemPage({ session }: ProblemPageProps) {
 
   function handleReset() {
     if (problem && room.isPilot) room.resetRoom(problem.starter_code);
+  }
+
+  function handleLanguageChange(language: Language) {
+    if (problem && room.isPilot) room.setLanguage(language, problem.starter_code);
   }
 
   function handleResizeStart(e: React.MouseEvent) {
@@ -275,6 +279,8 @@ export default function ProblemPage({ session }: ProblemPageProps) {
         <section aria-label="Editor e testes" className="flex min-h-0 flex-col bg-dojo-bg">
           <CodeEditor
             code={room.state.code}
+            language={room.state.language}
+            onLanguageChange={handleLanguageChange}
             onChange={room.updateCode}
             readOnly={!room.isPilot}
             onCursorChange={room.isPilot ? room.broadcastCursor : undefined}
@@ -288,6 +294,7 @@ export default function ProblemPage({ session }: ProblemPageProps) {
             phase={room.state.phase}
             rows={room.state.rows}
             mode={room.state.mode}
+            language={room.state.language}
             height={testsHeight}
             canRun={room.isPilot}
             onRun={handleRun}
