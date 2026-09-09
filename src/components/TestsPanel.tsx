@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import type { Language, RunMode, TestResultRow } from "../lib/types";
+import type { Language, Provider, RunMode, TestResultRow } from "../lib/types";
 import { LANGUAGES } from "../lib/languages";
 
 type Phase = "idle" | "running" | "result";
@@ -38,6 +38,7 @@ interface TestsPanelProps {
   rows: TestResultRow[];
   mode: RunMode;
   language: Language;
+  provider: Provider | null;
   height: number;
   canRun: boolean;
   onRun: (mode: RunMode) => void;
@@ -86,6 +87,7 @@ export default function TestsPanel({
   rows,
   mode,
   language,
+  provider,
   height,
   canRun,
   onRun,
@@ -94,7 +96,10 @@ export default function TestsPanel({
   onResizeStep,
 }: TestsPanelProps) {
   const running = phase === "running";
-  const compiler = LANGUAGES[language].compilerLabel;
+  // O Compiler Explorer só entra quando a Wandbox cai. Vale dizer qual rodou:
+  // é o que explica o aviso de quebra de linha sumir (ele não consegue detectar).
+  const compiler =
+    LANGUAGES[language].compilerLabel + (provider === "godbolt" ? " · via Compiler Explorer" : "");
   const passed = rows.filter((r) => r.passed).length;
   const [selected, setSelected] = useState(0);
 

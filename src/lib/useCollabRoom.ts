@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import type { RealtimeChannel } from "@supabase/supabase-js";
 import { supabase } from "./supabaseClient";
-import type { Language, RunMode, TestResultRow } from "./types";
+import type { Language, Provider, RunMode, TestResultRow } from "./types";
 import { isLanguage, isUntouchedStarter, starterFor } from "./languages";
 
 export interface RoomState {
@@ -12,6 +12,8 @@ export interface RoomState {
   mode: RunMode;
   /** Linguagem atual da sala — todo mundo edita o mesmo arquivo. */
   language: Language;
+  /** Compilador que rodou a última execução (null enquanto não rodou). */
+  provider: Provider | null;
 }
 
 export interface CursorPosition {
@@ -57,6 +59,7 @@ export function useCollabRoom(problemId: string | null, userId: string, starterC
     rows: [],
     mode: "test",
     language: "cpp",
+    provider: null,
   });
   const [pilotCursor, setPilotCursor] = useState<CursorPosition | null>(null);
 
@@ -80,7 +83,7 @@ export function useCollabRoom(problemId: string | null, userId: string, starterC
     hasReceivedStateRef.current = false;
     overridePilotRef.current = null;
     pilotIdRef.current = null;
-    setState({ code: starterCode, phase: "idle", rows: [], mode: "test", language: "cpp" });
+    setState({ code: starterCode, phase: "idle", rows: [], mode: "test", language: "cpp", provider: null });
     setPilotCursor(null);
 
     const channel = supabase.channel(`problem:${problemId}`, {
@@ -144,6 +147,7 @@ export function useCollabRoom(problemId: string | null, userId: string, starterC
                 rows: [],
                 mode: "test",
                 language: savedLanguage,
+                provider: null,
               });
             }
           }, STATE_REQUEST_TIMEOUT_MS);
@@ -201,15 +205,15 @@ export function useCollabRoom(problemId: string | null, userId: string, starterC
 
   function setRunning(mode: RunMode) {
     setState((prev) => {
-      const next: RoomState = { ...prev, phase: "running", rows: [], mode };
+      const next: RoomState = { ...prev, phase: "running", rows: [], mode, provider: null };
       broadcastState(next);
       return next;
     });
   }
 
-  function setResult(rows: TestResultRow[], mode: RunMode) {
+  function setResult(rows: TestResultRow[], mode: RunMode, provider: Provider | null) {
     setState((prev) => {
-      const next: RoomState = { ...prev, phase: "result", rows, mode };
+      const next: RoomState = { ...prev, phase: "result", rows, mode, provider };
       broadcastState(next);
       return next;
     });

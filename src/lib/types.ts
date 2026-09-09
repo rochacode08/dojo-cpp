@@ -59,11 +59,15 @@ export interface TestResultRow {
   warning?: string;
 }
 
+/** Qual compilador online executou. Ver supabase/functions/run-code. */
+export type Provider = "wandbox" | "godbolt";
+
 export interface RunCodeResponse {
   status: SubmissionStatus;
   results: TestResultRow[];
   mode: RunMode;
   language: Language;
+  provider: Provider | null;
 }
 
 export interface SubmissionHistoryEntry {

@@ -132,11 +132,12 @@ export default function ProblemPage({ session }: ProblemPageProps) {
           },
         ],
         mode,
+        null,
       );
       return;
     }
 
-    room.setResult(data.results, mode);
+    room.setResult(data.results, mode, data.provider ?? null);
 
     // Só "Enviar" grava submissão, então só aí o histórico muda.
     if (mode === "submit") fetchHistory(problem.id);
@@ -295,6 +296,7 @@ export default function ProblemPage({ session }: ProblemPageProps) {
             rows={room.state.rows}
             mode={room.state.mode}
             language={room.state.language}
+            provider={room.state.provider}
             height={testsHeight}
             canRun={room.isPilot}
             onRun={handleRun}
