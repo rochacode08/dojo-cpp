@@ -3,6 +3,7 @@ import Editor, { type BeforeMount, type Monaco, type OnMount } from "@monaco-edi
 import type { editor as MonacoEditorNS, Position } from "monaco-editor";
 import type { Language } from "../lib/types";
 import { LANGUAGES, LANGUAGE_IDS } from "../lib/languages";
+import { LanguageLogo } from "./Logos";
 
 interface RemoteCursor {
   lineNumber: number;
@@ -292,14 +293,19 @@ export default function CodeEditor({
                       ? "Só o piloto pode trocar a linguagem"
                       : `Escrever em ${LANGUAGES[id].label} (${LANGUAGES[id].compilerLabel})`
                   }
-                  className={`rounded px-2 py-[3px] font-mono text-[11px] font-semibold transition ${
+                  className={`flex items-center gap-1.5 rounded px-2 py-[3px] font-mono text-[11px] font-semibold transition ${
                     readOnly ? "pointer-events-none cursor-not-allowed opacity-50" : ""
                   }`}
                   style={{
-                    background: active ? "var(--dojo-accent-solid)" : "transparent",
-                    color: active ? "#ffffff" : "var(--dojo-text-dim)",
+                    background: active ? "var(--dojo-surface-raised)" : "transparent",
+                    color: active ? "var(--dojo-text-bright)" : "var(--dojo-text-faint)",
+                    boxShadow: active ? "0 0 0 1px var(--dojo-border2)" : "none",
+                    // O logo colorido já destaca o ativo; o inativo fica dessaturado
+                    // pra a diferença aparecer sem precisar de um fundo forte.
+                    filter: active ? "none" : "grayscale(1)",
                   }}
                 >
+                  <LanguageLogo language={id} size={13} />
                   {LANGUAGES[id].label}
                 </button>
               );

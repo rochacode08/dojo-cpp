@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import type { Difficulty, Problem, Profile, SubmissionHistoryEntry, SubmissionStatus, TestCase } from "../lib/types";
 import { LANGUAGES } from "../lib/languages";
+import { LanguageLogo } from "./Logos";
 
 const DIFFICULTY_PALETTE: Record<Difficulty, [string, string, string]> = {
   Fácil: ["rgba(35,134,54,0.16)", "#5ac37a", "rgba(90,195,122,0.35)"],
@@ -188,7 +189,11 @@ export default function ProblemPanel({ problem, sampleTests, history = [], profi
                       {profile?.display_name ?? "alguém"}
                     </span>
                     {h.language && (
-                      <span className="flex-none rounded border border-dojo-border2 px-1.5 py-[1px] font-mono text-[10px] text-dojo-textFaint">
+                      <span
+                        className="flex flex-none items-center gap-1 rounded border border-dojo-border2 px-1.5 py-[1px] font-mono text-[10px] text-dojo-textFaint"
+                        title={LANGUAGES[h.language].compilerLabel}
+                      >
+                        <LanguageLogo language={h.language} size={10} />
                         {LANGUAGES[h.language].label}
                       </span>
                     )}

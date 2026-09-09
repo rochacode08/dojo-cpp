@@ -1,6 +1,7 @@
 import { Link, useLocation } from "react-router-dom";
 import type { Profile } from "../lib/types";
 import { useTheme } from "../lib/useTheme";
+import { CppLogo } from "./Logos";
 
 interface HeaderProps {
   profiles: Profile[];
@@ -35,9 +36,7 @@ export default function Header({ profiles, subtitle, backTo }: HeaderProps) {
     <header className="flex h-11 flex-none items-center justify-between gap-3 border-b border-dojo-border bg-dojo-panel px-3 sm:px-4">
       <div className="flex min-w-0 items-center gap-2.5">
         <Link to={backTo ?? "/"} className="flex flex-none items-center gap-2.5 hover:opacity-90">
-          <div className="flex h-6 w-6 flex-none items-center justify-center rounded-md bg-dojo-accentSolid font-mono text-[11px] font-bold text-white">
-            C+
-          </div>
+          <CppLogo size={22} className="flex-none" />
           <span className="hidden text-sm font-semibold tracking-tight text-dojo-textBright sm:inline">
             C++ Dojo
           </span>

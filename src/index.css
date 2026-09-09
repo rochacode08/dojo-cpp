@@ -49,6 +49,13 @@
   --dojo-syn-type: #4ec9b0;
   --dojo-syn-string: #e0705c;
   --dojo-syn-number: #b5cea8;
+  /* Logos do C e do C++. O do C é um azul chapado que some no escuro,
+     então no tema escuro ele sobe um tom; o do C++ tem uma face clara
+     própria e mantém as cores oficiais nos dois temas. */
+  --dojo-logo-c: #4a9ede;
+  --dojo-logo-cpp-top: #659ad2;
+  --dojo-logo-cpp-right: #00599c;
+  --dojo-logo-cpp-bottom: #004482;
 }
 
 :root[data-theme="light"] {
@@ -94,6 +101,10 @@
   --dojo-syn-type: #167d76;
   --dojo-syn-string: #c41a16;
   --dojo-syn-number: #098658;
+  --dojo-logo-c: #03599c;
+  --dojo-logo-cpp-top: #659ad2;
+  --dojo-logo-cpp-right: #00599c;
+  --dojo-logo-cpp-bottom: #004482;
 }
 
 html,

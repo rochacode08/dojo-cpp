@@ -1,5 +1,6 @@
 import { FormEvent, useState } from "react";
 import { supabase } from "../lib/supabaseClient";
+import { CppLogo } from "../components/Logos";
 
 const SNIPPETS = [
   `class Filtro {
@@ -138,10 +139,10 @@ export default function LoginPage() {
       >
         <div className="flex flex-col items-center gap-3 text-center">
           <div
-            className="flex h-11 w-11 items-center justify-center rounded-xl font-mono text-[13px] font-bold text-white"
-            style={{ background: "#1b6fb0", boxShadow: "0 0 0 1px rgba(255,255,255,0.15), 0 8px 20px rgba(43,149,224,0.4)" }}
+            className="flex h-11 w-11 items-center justify-center rounded-xl"
+            style={{ background: "rgba(43,149,224,0.12)", boxShadow: "0 0 0 1px rgba(255,255,255,0.12), 0 8px 20px rgba(43,149,224,0.28)" }}
           >
-            C++
+            <CppLogo size={26} />
           </div>
           <div>
             <h1 className="m-0 text-[19px] font-bold tracking-[-0.01em] text-dojo-textBright">C++ Dojo</h1>
