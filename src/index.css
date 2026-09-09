@@ -41,6 +41,14 @@
   --dojo-pass-soft-border: rgba(110, 231, 160, 0.35);
   --dojo-fail-soft-bg: rgba(255, 133, 133, 0.14);
   --dojo-fail-soft-border: rgba(255, 133, 133, 0.35);
+  /* Realce de sintaxe dos trechos de código das aulas — mesma paleta dos
+     temas do Monaco em CodeEditor.tsx, pra o site inteiro falar a mesma língua. */
+  --dojo-syn-comment: #6baf5b;
+  --dojo-syn-preproc: #6baf5b;
+  --dojo-syn-keyword: #4fa6e8;
+  --dojo-syn-type: #4ec9b0;
+  --dojo-syn-string: #e0705c;
+  --dojo-syn-number: #b5cea8;
 }
 
 :root[data-theme="light"] {
@@ -80,6 +88,12 @@
   --dojo-pass-soft-border: rgba(30, 142, 62, 0.35);
   --dojo-fail-soft-bg: rgba(207, 48, 48, 0.08);
   --dojo-fail-soft-border: rgba(207, 48, 48, 0.35);
+  --dojo-syn-comment: #008000;
+  --dojo-syn-preproc: #008000;
+  --dojo-syn-keyword: #0000ff;
+  --dojo-syn-type: #167d76;
+  --dojo-syn-string: #c41a16;
+  --dojo-syn-number: #098658;
 }
 
 html,

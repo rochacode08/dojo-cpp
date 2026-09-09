@@ -6,6 +6,8 @@ import LoginPage from "./pages/LoginPage";
 import HomePage from "./pages/HomePage";
 import ProblemPage from "./pages/ProblemPage";
 import PlacarPage from "./pages/PlacarPage";
+import AulasPage from "./pages/AulasPage";
+import AulaPage from "./pages/AulaPage";
 import SubmissionToasts from "./components/SubmissionToasts";
 import Spinner from "./components/Spinner";
 
@@ -50,6 +52,14 @@ export default function App() {
         <Route
           path="/problema/:slug"
           element={session ? <ProblemPage session={session} /> : <Navigate to="/login" replace />}
+        />
+        <Route
+          path="/aulas"
+          element={session ? <AulasPage session={session} /> : <Navigate to="/login" replace />}
+        />
+        <Route
+          path="/aulas/:slug"
+          element={session ? <AulaPage session={session} /> : <Navigate to="/login" replace />}
         />
         <Route
           path="/placar"

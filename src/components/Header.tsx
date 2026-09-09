@@ -28,6 +28,7 @@ function MoonIcon() {
 export default function Header({ profiles, subtitle, backTo }: HeaderProps) {
   const location = useLocation();
   const onPlacar = location.pathname === "/placar";
+  const onAulas = location.pathname.startsWith("/aulas");
   const { theme, toggleTheme } = useTheme();
 
   return (
@@ -57,7 +58,18 @@ export default function Header({ profiles, subtitle, backTo }: HeaderProps) {
         >
           {theme === "dark" ? <SunIcon /> : <MoonIcon />}
         </button>
-        <nav aria-label="Principal">
+        <nav aria-label="Principal" className="flex items-center gap-3 sm:gap-3.5">
+          <Link
+            to="/aulas"
+            className="flex items-center gap-1.5 text-[11.5px] font-medium transition-colors"
+            style={{ color: onAulas ? "var(--dojo-accent)" : "var(--dojo-text-dim)" }}
+          >
+            <svg aria-hidden="true" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20" />
+              <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z" />
+            </svg>
+            <span className="hidden sm:inline">Aulas</span>
+          </Link>
           <Link
             to="/placar"
             className="flex items-center gap-1.5 text-[11.5px] font-medium transition-colors"
