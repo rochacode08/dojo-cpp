@@ -26,20 +26,20 @@ export default function Markdown({ children }: MarkdownProps) {
         h2: ({ children }) => (
           <h2
             id={anchorId(textOf(children))}
-            className="mt-9 scroll-mt-20 border-b border-dojo-border pb-1.5 text-[19px] font-semibold tracking-tight text-dojo-textBright first:mt-0"
+            className="mt-10 scroll-mt-20 border-b border-dojo-border pb-2 text-[21px] font-semibold tracking-tight text-dojo-textBright first:mt-0"
           >
             {children}
           </h2>
         ),
         h3: ({ children }) => (
-          <h3 id={anchorId(textOf(children))} className="mt-6 scroll-mt-20 text-[15px] font-semibold text-dojo-textBright">
+          <h3 id={anchorId(textOf(children))} className="mt-7 scroll-mt-20 text-[17px] font-semibold text-dojo-textBright">
             {children}
           </h3>
         ),
-        h4: ({ children }) => <h4 className="mt-5 text-[13.5px] font-semibold text-dojo-text">{children}</h4>,
-        p: ({ children }) => <p className="mt-3 leading-[1.7] text-dojo-text">{children}</p>,
-        ul: ({ children }) => <ul className="mt-3 flex list-disc flex-col gap-1.5 pl-5 leading-[1.65] text-dojo-text">{children}</ul>,
-        ol: ({ children }) => <ol className="mt-3 flex list-decimal flex-col gap-1.5 pl-5 leading-[1.65] text-dojo-text">{children}</ol>,
+        h4: ({ children }) => <h4 className="mt-5 text-[15px] font-semibold text-dojo-text">{children}</h4>,
+        p: ({ children }) => <p className="mt-3.5 max-w-[68ch] leading-[1.65] text-dojo-text">{children}</p>,
+        ul: ({ children }) => <ul className="mt-3.5 flex max-w-[68ch] list-disc flex-col gap-2 pl-5 leading-[1.6] text-dojo-text">{children}</ul>,
+        ol: ({ children }) => <ol className="mt-3.5 flex max-w-[68ch] list-decimal flex-col gap-2 pl-5 leading-[1.6] text-dojo-text">{children}</ol>,
         li: ({ children }) => <li className="pl-0.5">{children}</li>,
         strong: ({ children }) => <strong className="font-semibold text-dojo-textBright">{children}</strong>,
         a: ({ children, href }) => (
@@ -50,7 +50,7 @@ export default function Markdown({ children }: MarkdownProps) {
         hr: () => <hr className="mt-8 border-0 border-t border-dojo-border" />,
         blockquote: ({ children }) => (
           <blockquote
-            className="mt-4 rounded-r-md border-l-[3px] px-3.5 py-0.5 text-[13px]"
+            className="mt-4 max-w-[68ch] rounded-r-md border-l-[3px] px-4 py-1 text-[14px] leading-[1.6]"
             style={{ borderColor: "var(--dojo-accent)", background: "var(--dojo-accent-soft-bg)" }}
           >
             {children}
@@ -58,7 +58,7 @@ export default function Markdown({ children }: MarkdownProps) {
         ),
         table: ({ children }) => (
           <div className="mt-4 overflow-x-auto rounded-lg border border-dojo-border2">
-            <table className="w-full border-collapse text-[12.5px]">{children}</table>
+            <table className="w-full border-collapse text-[13.5px]">{children}</table>
           </div>
         ),
         thead: ({ children }) => <thead className="bg-dojo-surfaceSunken">{children}</thead>,
@@ -70,7 +70,7 @@ export default function Markdown({ children }: MarkdownProps) {
         ),
         code: ({ children }) => (
           <code
-            className="rounded border border-dojo-border2 bg-dojo-surfaceSunken px-1 py-[1px] font-mono text-[12px] text-dojo-textBright"
+            className="rounded border border-dojo-border2 bg-dojo-surfaceSunken px-1.5 py-[2px] font-mono text-[13px] text-dojo-textBright"
             style={{ fontVariantLigatures: "none", fontFeatureSettings: '"liga" 0, "calt" 0' }}
           >
             {children}

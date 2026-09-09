@@ -4,6 +4,7 @@ import type { editor as MonacoEditorNS, Position } from "monaco-editor";
 import type { Language } from "../lib/types";
 import { LANGUAGES, LANGUAGE_IDS } from "../lib/languages";
 import { LanguageLogo } from "./Logos";
+import { useTheme } from "../lib/useTheme";
 
 interface RemoteCursor {
   lineNumber: number;
@@ -205,7 +206,12 @@ export default function CodeEditor({
   remoteCursor,
 }: CodeEditorProps) {
   const languageDef = LANGUAGES[language];
-  const [light, setLight] = useState(false);
+  // O editor segue o tema do site por padrão — antes ele ficava branco com o
+  // resto escuro, o que o relatório de UI apontou como transição brusca. O
+  // botão continua existindo pra quem quiser um tema só pro editor.
+  const { theme } = useTheme();
+  const [override, setOverride] = useState<boolean | null>(null);
+  const light = override ?? theme === "light";
   const editorRef = useRef<MonacoEditorNS.IStandaloneCodeEditor | null>(null);
   const monacoRef = useRef<Monaco | null>(null);
   const decorationIdsRef = useRef<string[]>([]);
@@ -314,7 +320,7 @@ export default function CodeEditor({
           {languageDef.fileName}
         </div>
         <button
-          onClick={() => setLight((v) => !v)}
+          onClick={() => setOverride(!light)}
           title={light ? "Mudar pro tema escuro" : "Mudar pro tema claro"}
           className="flex items-center gap-1.5 px-3 text-[11px] text-dojo-textDim hover:text-dojo-textBright"
         >

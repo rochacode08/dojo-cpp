@@ -3,18 +3,18 @@
 @tailwind utilities;
 
 :root {
-  --dojo-bg: #000000;
-  --dojo-panel: #111318;
-  --dojo-panel2: #181b21;
-  --dojo-card: #15171c;
-  --dojo-card-hover: #1b1e24;
-  --dojo-border: #262a31;
-  --dojo-border2: #3a3f47;
-  --dojo-text: #e4e4e4;
-  --dojo-text-bright: #f7f7f7;
-  --dojo-text-dim: #a3a3a3;
-  --dojo-text-faint: #909090;
-  --dojo-text-subtle: #8a8a8a;
+  --dojo-bg: #0f1115;
+  --dojo-panel: #171a21;
+  --dojo-panel2: #1a1e26;
+  --dojo-card: #1e232c;
+  --dojo-card-hover: #252b36;
+  --dojo-border: #272d38;
+  --dojo-border2: #303846;
+  --dojo-text: #dfe5ee;
+  --dojo-text-bright: #f4f7fb;
+  --dojo-text-dim: #a9b2c1;
+  --dojo-text-faint: #8f99a9;
+  --dojo-text-subtle: #828d9e;
   --dojo-accent: #2b95e0;
   /* Cor sólida pra botões com texto branco em cima (o --dojo-accent normal
      não passa em 4.5:1 com branco — ver auditoria de acessibilidade). */
@@ -23,9 +23,9 @@
   --dojo-green-bright: #6ee7a0;
   --dojo-red: #ff8585;
   --dojo-amber: #f0c674;
-  --dojo-surface-sunken: #0d0d0d;
-  --dojo-surface-raised: #171717;
-  --dojo-surface-hover: #1f1f1f;
+  --dojo-surface-sunken: #14171d;
+  --dojo-surface-raised: #1e232c;
+  --dojo-surface-hover: #252b36;
   --dojo-hairline: rgba(255, 255, 255, 0.06);
   --dojo-hairline-strong: rgba(255, 255, 255, 0.14);
   --dojo-danger-bg: #241010;
@@ -59,27 +59,27 @@
 }
 
 :root[data-theme="light"] {
-  --dojo-bg: #f3f4f6;
+  --dojo-bg: #f1f3f7;
   --dojo-panel: #ffffff;
-  --dojo-panel2: #eef0f3;
+  --dojo-panel2: #f7f8fb;
   --dojo-card: #ffffff;
-  --dojo-card-hover: #f7f8fa;
-  --dojo-border: #e1e4e8;
-  --dojo-border2: #cbd0d6;
-  --dojo-text: #24292e;
-  --dojo-text-bright: #0d1117;
-  --dojo-text-dim: #57606a;
-  --dojo-text-faint: #5f6773;
-  --dojo-text-subtle: #636d7a;
-  --dojo-accent: #1b78c4;
-  --dojo-accent-solid: #1b78c4;
+  --dojo-card-hover: #f7f8fb;
+  --dojo-border: #e2e6ec;
+  --dojo-border2: #c9d0da;
+  --dojo-text: #2b333f;
+  --dojo-text-bright: #0f1115;
+  --dojo-text-dim: #55606f;
+  --dojo-text-faint: #5d6879;
+  --dojo-text-subtle: #697484;
+  --dojo-accent: #176fb8;
+  --dojo-accent-solid: #176fb8;
   --dojo-green: #1e8e3e;
   --dojo-green-bright: #16793f;
   --dojo-red: #cf3030;
   --dojo-amber: #9a6700;
-  --dojo-surface-sunken: #eef0f3;
-  --dojo-surface-raised: #eef0f3;
-  --dojo-surface-hover: #e4e7eb;
+  --dojo-surface-sunken: #f1f3f7;
+  --dojo-surface-raised: #f7f8fb;
+  --dojo-surface-hover: #e8ecf2;
   --dojo-hairline: rgba(0, 0, 0, 0.08);
   --dojo-hairline-strong: rgba(0, 0, 0, 0.16);
   --dojo-danger-bg: #fdecea;
@@ -105,6 +105,19 @@
   --dojo-logo-cpp-top: #659ad2;
   --dojo-logo-cpp-right: #00599c;
   --dojo-logo-cpp-bottom: #004482;
+}
+
+/*
+ * Escala tipográfica (recomendação do relatório de UI, set/2026):
+ * 16px corpo, 14px metadados, 12px só rótulos auxiliares. Antes disso o site
+ * inteiro vivia entre 11px e 13px, o que cansava a leitura.
+ */
+:root {
+  --dojo-text-body: 15.5px;
+  --dojo-text-meta: 13.5px;
+  --dojo-text-label: 12px;
+  --dojo-title-page: 30px;
+  --dojo-title-card: 18px;
 }
 
 html,

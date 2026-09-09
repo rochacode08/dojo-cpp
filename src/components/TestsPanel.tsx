@@ -130,7 +130,7 @@ export default function TestsPanel({
   return (
     <>
       <div className="flex flex-none items-center justify-between gap-3 border-t border-dojo-border bg-dojo-panel2 px-3.5 py-2.5">
-        <div className="flex items-center gap-2.5 text-xs text-dojo-textDim">
+        <div className="flex items-center gap-2.5 text-[13px] text-dojo-textDim">
           <svg aria-hidden="true" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
             <circle cx="12" cy="12" r="10" />
             <polyline points="12 6 12 12 16 14" />
@@ -151,7 +151,7 @@ export default function TestsPanel({
             onClick={() => canRun && onReset()}
             aria-disabled={!canRun}
             title={canRun ? undefined : "Só o piloto pode reiniciar"}
-            className={`inline-flex items-center gap-1.5 rounded-md border border-dojo-border2 bg-dojo-surfaceRaised px-3 py-1.5 font-sans text-[12.5px] text-dojo-text transition hover:bg-dojo-surfaceHover hover:text-dojo-textBright active:scale-95 ${
+            className={`inline-flex h-10 items-center gap-1.5 rounded-lg border border-dojo-border2 bg-dojo-surfaceRaised px-3 font-sans text-[13.5px] text-dojo-text transition hover:bg-dojo-surfaceHover hover:text-dojo-textBright active:scale-95 ${
               !canRun ? "pointer-events-none cursor-not-allowed opacity-40" : ""
             }`}
           >
@@ -167,7 +167,7 @@ export default function TestsPanel({
             onClick={() => !running && canRun && onRun("test")}
             aria-disabled={running || !canRun}
             title={canRun ? "Roda só os exemplos do enunciado · Ctrl+Enter" : "Só o piloto pode testar"}
-            className={`inline-flex items-center gap-2 rounded-md border px-3.5 py-2 font-sans text-[13px] font-semibold transition hover:bg-dojo-surfaceHover active:scale-[0.97] ${
+            className={`inline-flex h-10 items-center gap-2 rounded-lg border px-3.5 font-sans text-[14px] font-semibold transition hover:bg-dojo-surfaceHover active:scale-[0.97] ${
               running || !canRun ? "pointer-events-none cursor-not-allowed opacity-50" : ""
             }`}
             style={{
@@ -185,14 +185,16 @@ export default function TestsPanel({
             onClick={() => !running && canRun && onRun("submit")}
             aria-disabled={running || !canRun}
             title={canRun ? "Roda todos os casos e registra a tentativa · Ctrl+Shift+Enter" : "Só o piloto pode enviar"}
-            className={`inline-flex items-center gap-2 rounded-md px-4 py-2 font-sans text-[13px] font-semibold text-white transition hover:brightness-110 active:scale-[0.97] ${
+            className={`inline-flex h-10 items-center gap-2 rounded-lg px-4 font-sans text-[14px] font-semibold transition hover:brightness-110 active:scale-[0.97] ${
               running || !canRun ? "pointer-events-none cursor-not-allowed" : ""
             }`}
             style={{
               background: running || !canRun ? "var(--dojo-surface-raised)" : "#1f7a34",
+              // Desabilitado o fundo fica claro: texto branco aqui sumia no tema claro.
+              color: running || !canRun ? "var(--dojo-text-dim)" : "#ffffff",
               border: `1px solid ${running || !canRun ? "var(--dojo-border2)" : "rgba(255,255,255,0.14)"}`,
               boxShadow: running || !canRun ? "none" : "0 0 0 1px rgba(46,160,67,0.25), 0 2px 10px rgba(46,160,67,0.35)",
-              opacity: !canRun && !running ? 0.5 : 1,
+              opacity: !canRun && !running ? 0.6 : 1,
             }}
           >
             {running && mode === "submit" ? <Spinner /> : <SendIcon />}
@@ -243,7 +245,7 @@ export default function TestsPanel({
           </div>
         </div>
 
-        <div className="min-h-0 flex-1 overflow-y-auto px-3.5 pb-4 pt-2.5 font-mono text-[12.5px]">
+        <div className="min-h-0 flex-1 overflow-y-auto px-3.5 pb-4 pt-2.5 font-mono text-[13px]">
           {rows.length === 0 ? (
             <div className="text-dojo-textFaint">
               {running

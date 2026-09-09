@@ -9,7 +9,8 @@
     "preview": "vite preview",
     "lint": "eslint .",
     "check:migrations": "node scripts/check-migrations.mjs",
-    "check:providers": "node scripts/check-providers.mjs"
+    "check:providers": "node scripts/check-providers.mjs",
+    "check:contrast": "node scripts/check-contrast.mjs"
   },
   "dependencies": {
     "@monaco-editor/react": "^4.6.0",

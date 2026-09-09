@@ -26,7 +26,20 @@ export interface Lesson {
   body: string;
   /** Estimativa grosseira de leitura, em minutos. */
   minutes: number;
+  /** Temas de problema que praticam o conteúdo desta aula. */
+  practiceTags: string[];
 }
+
+/**
+ * Liga cada aula aos temas de problema correspondentes. É o que permite sair
+ * da teoria direto pra prática — sem isso as aulas ficam num canto só delas.
+ */
+const PRACTICE_TAGS: Record<string, string[]> = {
+  "01-primeiro-programa": ["Aritmética", "Formatação"],
+  "02-a-base": ["Condicionais", "Aritmética"],
+  "03-repeticao": ["Loops"],
+  "04-vetores-matrizes-strings": ["Vetores", "Matrizes", "Strings"],
+};
 
 const WORDS_PER_MINUTE = 190;
 
@@ -61,7 +74,7 @@ function parse(path: string, raw: string): Lesson {
 
   const minutes = Math.max(1, Math.round(raw.split(/\s+/).length / WORDS_PER_MINUTE));
 
-  return { slug, number, title, summary, topics, body, minutes };
+  return { slug, number, title, summary, topics, body, minutes, practiceTags: PRACTICE_TAGS[slug] ?? [] };
 }
 
 export const LESSONS: Lesson[] = Object.entries(files)

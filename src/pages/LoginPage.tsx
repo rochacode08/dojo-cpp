@@ -129,7 +129,7 @@ export default function LoginPage() {
       {/* Card */}
       <form
         onSubmit={handleSubmit}
-        className="relative z-10 flex w-full max-w-[380px] flex-col gap-5 rounded-2xl p-9"
+        className="relative z-10 flex w-full max-w-[420px] flex-col gap-6 rounded-2xl p-8 sm:p-10"
         style={{
           background: "rgba(17,19,24,0.85)",
           border: "1px solid rgba(255,255,255,0.08)",
@@ -139,19 +139,22 @@ export default function LoginPage() {
       >
         <div className="flex flex-col items-center gap-3 text-center">
           <div
-            className="flex h-11 w-11 items-center justify-center rounded-xl"
+            className="flex h-14 w-14 items-center justify-center rounded-2xl"
             style={{ background: "rgba(43,149,224,0.12)", boxShadow: "0 0 0 1px rgba(255,255,255,0.12), 0 8px 20px rgba(43,149,224,0.28)" }}
           >
-            <CppLogo size={26} />
+            <CppLogo size={34} />
           </div>
           <div>
-            <h1 className="m-0 text-[19px] font-bold tracking-[-0.01em] text-dojo-textBright">C++ Dojo</h1>
-            <p className="m-0 mt-1 text-[12.5px] text-dojo-textDim">Você entra vibecoder e sai programando no bloco de notas</p>
+            <h1 className="m-0 text-[24px] font-bold tracking-[-0.015em] text-dojo-textBright">C++ Dojo</h1>
+            <p className="m-0 mt-1.5 text-[14.5px] text-dojo-text">Você entra vibecoder e sai programando no bloco de notas</p>
+            <p className="m-0 mt-2 text-[13.5px] leading-[1.5] text-dojo-textDim">
+              Acompanhe as aulas, resolva os desafios e dispute o placar com o grupo.
+            </p>
           </div>
         </div>
 
         <div className="flex flex-col gap-3.5">
-          <label className="flex flex-col gap-1.5 text-[11.5px] font-medium text-dojo-textDim">
+          <label className="flex flex-col gap-2 text-[13.5px] font-medium text-dojo-text">
             E-mail
             <input
               type="email"
@@ -159,12 +162,12 @@ export default function LoginPage() {
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               autoComplete="email"
-              className="rounded-lg px-3.5 py-2.5 text-[13.5px] text-dojo-text outline-none ring-1 ring-inset ring-white/[0.08] transition focus:ring-2 focus:ring-dojo-accent"
+              className="h-12 rounded-lg px-4 text-[15px] text-dojo-text outline-none ring-1 ring-inset ring-white/[0.1] transition focus:ring-2 focus:ring-dojo-accent"
               style={{ background: "rgba(0,0,0,0.35)" }}
             />
           </label>
 
-          <label className="flex flex-col gap-1.5 text-[11.5px] font-medium text-dojo-textDim">
+          <label className="flex flex-col gap-2 text-[13.5px] font-medium text-dojo-text">
             Senha
             <input
               type="password"
@@ -172,14 +175,14 @@ export default function LoginPage() {
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               autoComplete="current-password"
-              className="rounded-lg px-3.5 py-2.5 text-[13.5px] text-dojo-text outline-none ring-1 ring-inset ring-white/[0.08] transition focus:ring-2 focus:ring-dojo-accent"
+              className="h-12 rounded-lg px-4 text-[15px] text-dojo-text outline-none ring-1 ring-inset ring-white/[0.1] transition focus:ring-2 focus:ring-dojo-accent"
               style={{ background: "rgba(0,0,0,0.35)" }}
             />
           </label>
         </div>
 
         {error && (
-          <div role="alert" className="animate-dojo-fade rounded-lg border border-dojo-red/30 bg-[#241010] px-3 py-2 text-[12px] text-dojo-red">
+          <div role="alert" className="animate-dojo-fade rounded-lg border border-dojo-red/40 bg-[#241010] px-3.5 py-2.5 text-[13.5px] text-dojo-red">
             {error}
           </div>
         )}
@@ -187,9 +190,16 @@ export default function LoginPage() {
         <button
           type="submit"
           disabled={loading}
-          className="mt-1 rounded-lg py-2.5 text-[13.5px] font-semibold text-white transition hover:brightness-110 active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-60"
+          className="mt-1 flex h-12 items-center justify-center gap-2 rounded-lg text-[15.5px] font-semibold text-white transition hover:brightness-110 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/60 active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-60"
           style={{ background: "#1b6fb0", boxShadow: "0 0 0 1px rgba(255,255,255,0.12), 0 6px 20px rgba(43,149,224,0.35)" }}
         >
+          {loading && (
+            <span
+              aria-hidden="true"
+              className="inline-block h-4 w-4 animate-dojo-spin rounded-full"
+              style={{ border: "2px solid rgba(255,255,255,0.35)", borderTopColor: "#fff" }}
+            />
+          )}
           {loading ? "Entrando..." : "Entrar"}
         </button>
 
@@ -203,14 +213,14 @@ export default function LoginPage() {
             ].map((p) => (
               <div
                 key={p.i}
-                className="-ml-1.5 flex h-5 w-5 items-center justify-center rounded-full border-2 text-[8px] font-semibold text-white first:ml-0"
+                className="-ml-1.5 flex h-6 w-6 items-center justify-center rounded-full border-2 text-[9.5px] font-semibold text-white first:ml-0"
                 style={{ background: p.c, borderColor: "rgba(17,19,24,0.85)" }}
               >
                 {p.i}
               </div>
             ))}
           </div>
-          <span className="text-[11px] text-dojo-textDim">4 no dojo</span>
+          <span className="text-[12.5px] text-dojo-textDim">4 no dojo</span>
         </div>
       </form>
     </div>

@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import { useParams } from "react-router-dom";
+import { Link, useParams } from "react-router-dom";
 import type { Session } from "@supabase/supabase-js";
 import { supabase } from "../lib/supabaseClient";
 import type { Language, Problem, Profile, RunCodeResponse, RunMode, SubmissionHistoryEntry, TestCase } from "../lib/types";
@@ -19,6 +19,12 @@ interface ProblemPageProps {
 // esse teto do lado do cliente cobre vários casos em sequência com folga.
 const RUN_TIMEOUT_MS = 90000;
 
+const DIFFICULTY_COLOR: Record<string, string> = {
+  "Fácil": "var(--dojo-green-bright)",
+  "Médio": "var(--dojo-amber)",
+  "Difícil": "var(--dojo-red)",
+};
+
 export default function ProblemPage({ session }: ProblemPageProps) {
   const { slug } = useParams<{ slug: string }>();
   const [profiles, setProfiles] = useState<Profile[]>([]);
@@ -27,9 +33,15 @@ export default function ProblemPage({ session }: ProblemPageProps) {
   const [history, setHistory] = useState<SubmissionHistoryEntry[]>([]);
   const [loadError, setLoadError] = useState<string | null>(null);
   const [testsHeight, setTestsHeight] = useState(268);
+  // Divisão horizontal entre enunciado e editor, em % da largura. O relatório
+  // de UI pediu 42/58 como ponto de partida e a possibilidade de arrastar.
+  const [splitPct, setSplitPct] = useState(42);
+  // Em telas estreitas os dois painéis não cabem lado a lado: viram abas.
+  const [mobileTab, setMobileTab] = useState<"enunciado" | "codigo" | "testes">("enunciado");
   const [celebrating, setCelebrating] = useState(false);
   const [celebrateKey, setCelebrateKey] = useState(0);
   const draggingRef = useRef(false);
+  const splitDraggingRef = useRef(false);
   const celebrateTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const room = useCollabRoom(problem?.id ?? null, session.user.id, problem?.starter_code ?? "");
@@ -199,6 +211,30 @@ export default function ProblemPage({ session }: ProblemPageProps) {
     setTestsHeight((h) => Math.min(Math.max(h + delta, 120), window.innerHeight - 260));
   }
 
+  function handleSplitStart(e: React.MouseEvent) {
+    e.preventDefault();
+    splitDraggingRef.current = true;
+    document.body.style.cursor = "col-resize";
+    window.addEventListener("mousemove", handleSplitMove);
+    window.addEventListener("mouseup", handleSplitEnd);
+  }
+
+  function handleSplitMove(e: MouseEvent) {
+    if (!splitDraggingRef.current) return;
+    setSplitPct(Math.min(Math.max((e.clientX / window.innerWidth) * 100, 25), 70));
+  }
+
+  function handleSplitStep(delta: number) {
+    setSplitPct((v) => Math.min(Math.max(v + delta, 25), 70));
+  }
+
+  function handleSplitEnd() {
+    splitDraggingRef.current = false;
+    document.body.style.cursor = "";
+    window.removeEventListener("mousemove", handleSplitMove);
+    window.removeEventListener("mouseup", handleSplitEnd);
+  }
+
   function handleResizeEnd() {
     draggingRef.current = false;
     document.body.style.cursor = "";
@@ -231,53 +267,145 @@ export default function ProblemPage({ session }: ProblemPageProps) {
   return (
     <div className="flex h-screen flex-col overflow-hidden bg-dojo-bg font-sans text-dojo-text">
       {celebrating && <Confetti key={celebrateKey} />}
-      <Header profiles={profiles} subtitle={problem.tags.join(" · ")} />
+      <Header profiles={profiles} subtitle="" me={profiles.find((p) => p.id === session.user.id) ?? null} />
 
-      <div className="flex flex-none flex-col gap-2 border-b border-dojo-border bg-dojo-panel px-4 py-2 sm:flex-row sm:items-center sm:justify-between">
-        <div className="flex items-center gap-2">
-          <div className="flex">
-            {presentProfiles.map((p) => (
-              <div
-                key={p.id}
-                title={p.id === room.pilotId ? `${p.display_name} (piloto)` : p.display_name}
-                className="relative -ml-1.5 flex h-6 w-6 flex-none items-center justify-center rounded-full border-2 border-dojo-panel text-[9px] font-semibold first:ml-0"
-                style={{ background: p.avatar_color, color: "#ffffff" }}
+      {/* Cabeçalho de contexto do desafio: onde estou, o que é, e quem manda */}
+      <div className="flex flex-none flex-col gap-2 border-b border-dojo-border bg-dojo-panel px-3 py-2.5 sm:px-5 lg:flex-row lg:items-center lg:justify-between">
+        <div className="flex min-w-0 items-center gap-3">
+          <Link
+            to="/"
+            title="Voltar para os problemas"
+            aria-label="Voltar para os problemas"
+            className="flex h-8 w-8 flex-none items-center justify-center rounded-lg text-dojo-textDim transition-colors hover:bg-dojo-surfaceHover hover:text-dojo-textBright"
+          >
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <path d="m15 18-6-6 6-6" />
+            </svg>
+          </Link>
+
+          <div className="min-w-0">
+            <div className="flex min-w-0 flex-wrap items-center gap-x-2.5 gap-y-1">
+              <h1 className="m-0 truncate text-[17px] font-semibold text-dojo-textBright">{problem.title}</h1>
+              <span
+                className="flex-none rounded-md px-2 py-[2px] text-[11.5px] font-bold uppercase tracking-[0.05em]"
+                style={{ color: DIFFICULTY_COLOR[problem.difficulty], background: "var(--dojo-surface-sunken)" }}
               >
-                {p.avatar_initials}
-                {p.id === room.pilotId && (
-                  <span className="absolute -bottom-1 -right-1 flex h-3 w-3 items-center justify-center rounded-full bg-dojo-accent text-[7px]" title="Piloto">
-                    🚗
-                  </span>
-                )}
-              </div>
-            ))}
+                {problem.difficulty}
+              </span>
+            </div>
+            <span className="hidden truncate text-[12.5px] text-dojo-textFaint sm:block">
+              {problem.tags.join(" · ")}
+            </span>
           </div>
-          <span className="text-[12px] text-dojo-textDim">
-            {presentProfiles.length} {presentProfiles.length === 1 ? "pessoa" : "pessoas"} na sala
-          </span>
         </div>
 
-        {room.isPilot ? (
-          <span className="flex items-center gap-1.5 text-[12px] font-medium text-dojo-accent">🚗 Você é o piloto — pode editar e executar</span>
-        ) : (
-          <div className="flex flex-wrap items-center gap-2.5">
-            <span className="text-[12px] text-dojo-textDim">
-              {pilotProfile ? `${pilotProfile.display_name} é o piloto` : "aguardando piloto"} — você está no modo copiloto
+        <div className="flex flex-wrap items-center gap-x-3 gap-y-2">
+          <div className="flex items-center gap-2">
+            <div className="flex">
+              {presentProfiles.map((p) => (
+                <div
+                  key={p.id}
+                  title={p.id === room.pilotId ? `${p.display_name} (piloto)` : p.display_name}
+                  className="relative -ml-1.5 flex h-7 w-7 flex-none items-center justify-center rounded-full border-2 border-dojo-panel text-[10px] font-semibold first:ml-0"
+                  style={{ background: p.avatar_color, color: "#ffffff" }}
+                >
+                  {p.avatar_initials}
+                  {p.id === room.pilotId && (
+                    <span className="absolute -bottom-1 -right-1 flex h-3.5 w-3.5 items-center justify-center rounded-full bg-dojo-accent text-[8px]" title="Piloto">
+                      🚗
+                    </span>
+                  )}
+                </div>
+              ))}
+            </div>
+            <span className="text-[13px] text-dojo-textDim">
+              {presentProfiles.length} na sala
             </span>
-            <button
-              onClick={room.claimPilot}
-              className="rounded-md bg-dojo-accentSolid px-2.5 py-1 text-[11.5px] font-semibold text-white transition hover:brightness-110 active:scale-95"
-            >
-              Pegar o volante
-            </button>
           </div>
-        )}
+
+          {room.isPilot ? (
+            <span
+              className="flex items-center gap-1.5 rounded-lg px-2.5 py-1 text-[13px] font-medium"
+              style={{ background: "var(--dojo-accent-soft-bg)", color: "var(--dojo-accent)" }}
+            >
+              🚗 Você é o piloto
+            </span>
+          ) : (
+            <div className="flex flex-wrap items-center gap-2.5">
+              <span className="text-[13px] text-dojo-textDim">
+                {pilotProfile ? `${pilotProfile.display_name} pilota` : "aguardando piloto"} — você é copiloto
+              </span>
+              <button
+                onClick={room.claimPilot}
+                className="h-8 rounded-lg bg-dojo-accentSolid px-3 text-[13px] font-semibold text-white transition hover:brightness-110 active:scale-95"
+              >
+                Pegar o volante
+              </button>
+            </div>
+          )}
+        </div>
       </div>
 
-      <main className="grid min-h-0 flex-1 grid-cols-1 overflow-y-auto md:grid-cols-[minmax(360px,42%)_1fr] md:overflow-hidden">
-        <ProblemPanel problem={problem} sampleTests={sampleTests} history={history} profiles={profiles} />
+      {/* Abas só no mobile: os dois painéis lado a lado não cabem em 390px */}
+      <div className="flex flex-none border-b border-dojo-border bg-dojo-panel md:hidden" role="tablist" aria-label="Seções do desafio">
+        {(["enunciado", "codigo", "testes"] as const).map((tab) => (
+          <button
+            key={tab}
+            role="tab"
+            aria-selected={mobileTab === tab}
+            onClick={() => setMobileTab(tab)}
+            className="flex h-11 flex-1 items-center justify-center text-[13.5px] font-medium capitalize transition-colors"
+            style={{
+              color: mobileTab === tab ? "var(--dojo-text-bright)" : "var(--dojo-text-dim)",
+              borderBottom: `2px solid ${mobileTab === tab ? "var(--dojo-accent)" : "transparent"}`,
+            }}
+          >
+            {tab === "codigo" ? "Código" : tab}
+          </button>
+        ))}
+      </div>
 
-        <section aria-label="Editor e testes" className="flex min-h-0 flex-col bg-dojo-bg">
+      <main
+        className="grid min-h-0 flex-1 grid-cols-1 overflow-y-auto md:overflow-hidden"
+        style={{ gridTemplateColumns: undefined }}
+      >
+        <div
+          className="contents md:grid md:min-h-0"
+          style={{ gridTemplateColumns: `${splitPct}% 6px 1fr` }}
+        >
+          <div className={`min-h-0 ${mobileTab === "enunciado" ? "" : "hidden md:block"}`}>
+            <ProblemPanel problem={problem} sampleTests={sampleTests} history={history} profiles={profiles} />
+          </div>
+
+          {/* Divisor arrastável (só faz sentido com os painéis lado a lado) */}
+          <div
+            onMouseDown={handleSplitStart}
+            onKeyDown={(e) => {
+              if (e.key === "ArrowLeft") {
+                e.preventDefault();
+                handleSplitStep(-4);
+              } else if (e.key === "ArrowRight") {
+                e.preventDefault();
+                handleSplitStep(4);
+              }
+            }}
+            role="separator"
+            aria-orientation="vertical"
+            aria-label="Ajustar a largura do enunciado (setas esquerda/direita)"
+            aria-valuenow={Math.round(splitPct)}
+            tabIndex={0}
+            className="group hidden cursor-col-resize items-center justify-center border-x border-dojo-border bg-dojo-panel focus:outline-none md:flex"
+          >
+            <div className="h-10 w-[3px] rounded-full bg-dojo-border2 transition-colors group-hover:bg-dojo-accent group-focus-visible:bg-dojo-accent" />
+          </div>
+
+          <section
+            aria-label="Editor e testes"
+            className={`flex min-h-0 flex-col bg-dojo-bg ${mobileTab === "enunciado" ? "hidden md:flex" : ""}`}
+          >
+          {/* "contents" mantém o filho participando do flex do pai; no mobile
+              cada aba esconde o que não é dela. */}
+          <div className={mobileTab === "codigo" ? "contents" : "hidden md:contents"}>
           <CodeEditor
             code={room.state.code}
             language={room.state.language}
@@ -291,6 +419,8 @@ export default function ProblemPage({ session }: ProblemPageProps) {
                 : null
             }
           />
+          </div>
+          <div className={mobileTab === "testes" ? "contents" : "hidden md:contents"}>
           <TestsPanel
             phase={room.state.phase}
             rows={room.state.rows}
@@ -304,7 +434,9 @@ export default function ProblemPage({ session }: ProblemPageProps) {
             onResizeStart={handleResizeStart}
             onResizeStep={handleResizeStep}
           />
+          </div>
         </section>
+        </div>
       </main>
 
       <button
