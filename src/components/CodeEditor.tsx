@@ -1,5 +1,9 @@
 import { useEffect, useRef, useState } from "react";
-import Editor, { type BeforeMount, type Monaco, type OnMount } from "@monaco-editor/react";
+import Editor, {
+  type BeforeMount,
+  type Monaco,
+  type OnMount,
+} from "@monaco-editor/react";
 import type { editor as MonacoEditorNS, Position } from "monaco-editor";
 import type { Language } from "../lib/types";
 import { LANGUAGES, LANGUAGE_IDS } from "../lib/languages";
@@ -17,6 +21,9 @@ interface CodeEditorProps {
   language: Language;
   onLanguageChange: (language: Language) => void;
   onChange: (value: string) => void;
+  /** Rascunho pessoal: fica numa aba ao lado do código, não no enunciado. */
+  notes: string;
+  onNotesChange: (value: string) => void;
   readOnly?: boolean;
   onCursorChange?: (lineNumber: number, column: number) => void;
   remoteCursor?: RemoteCursor | null;
@@ -32,14 +39,42 @@ interface SnippetDef {
 // exigiria um language server como o clangd rodando em algum lugar), só um
 // atalho pra não digitar de novo os padrões mais repetidos do curso.
 const CPP_SNIPPETS: SnippetDef[] = [
-  { label: "main", detail: "Esqueleto de função main", insertText: "int main() {\n\t${0}\n\treturn 0;\n}" },
-  { label: "incliostream", detail: "#include <iostream>", insertText: "#include <iostream>" },
-  { label: "inclvector", detail: "#include <vector>", insertText: "#include <vector>" },
-  { label: "inclstring", detail: "#include <string>", insertText: "#include <string>" },
-  { label: "inclalgorithm", detail: "#include <algorithm>", insertText: "#include <algorithm>" },
-  { label: "inclcmath", detail: "#include <cmath>", insertText: "#include <cmath>" },
+  {
+    label: "main",
+    detail: "Esqueleto de função main",
+    insertText: "int main() {\n\t${0}\n\treturn 0;\n}",
+  },
+  {
+    label: "incliostream",
+    detail: "#include <iostream>",
+    insertText: "#include <iostream>",
+  },
+  {
+    label: "inclvector",
+    detail: "#include <vector>",
+    insertText: "#include <vector>",
+  },
+  {
+    label: "inclstring",
+    detail: "#include <string>",
+    insertText: "#include <string>",
+  },
+  {
+    label: "inclalgorithm",
+    detail: "#include <algorithm>",
+    insertText: "#include <algorithm>",
+  },
+  {
+    label: "inclcmath",
+    detail: "#include <cmath>",
+    insertText: "#include <cmath>",
+  },
   { label: "inclmap", detail: "#include <map>", insertText: "#include <map>" },
-  { label: "usingnamespacestd", detail: "using namespace std;", insertText: "using namespace std;" },
+  {
+    label: "usingnamespacestd",
+    detail: "using namespace std;",
+    insertText: "using namespace std;",
+  },
   {
     label: "for",
     detail: "Loop for clássico",
@@ -50,12 +85,32 @@ const CPP_SNIPPETS: SnippetDef[] = [
     detail: "Loop for baseado em intervalo",
     insertText: "for (${1:auto}& ${2:x} : ${3:vetor}) {\n\t${0}\n}",
   },
-  { label: "while", detail: "Loop while", insertText: "while (${1:condicao}) {\n\t${0}\n}" },
-  { label: "ifelse", detail: "if / else", insertText: "if (${1:condicao}) {\n\t${2}\n} else {\n\t${0}\n}" },
+  {
+    label: "while",
+    detail: "Loop while",
+    insertText: "while (${1:condicao}) {\n\t${0}\n}",
+  },
+  {
+    label: "ifelse",
+    detail: "if / else",
+    insertText: "if (${1:condicao}) {\n\t${2}\n} else {\n\t${0}\n}",
+  },
   { label: "cin", detail: "Ler entrada", insertText: "cin >> ${0:variavel};" },
-  { label: "cout", detail: "Imprimir com quebra de linha", insertText: "cout << ${0:valor} << endl;" },
-  { label: "vectorint", detail: "vector<int>", insertText: "vector<int> ${1:v}(${2:n});" },
-  { label: "vectorstring", detail: "vector<string>", insertText: "vector<string> ${1:v}(${2:n});" },
+  {
+    label: "cout",
+    detail: "Imprimir com quebra de linha",
+    insertText: "cout << ${0:valor} << endl;",
+  },
+  {
+    label: "vectorint",
+    detail: "vector<int>",
+    insertText: "vector<int> ${1:v}(${2:n});",
+  },
+  {
+    label: "vectorstring",
+    detail: "vector<string>",
+    insertText: "vector<string> ${1:v}(${2:n});",
+  },
   {
     label: "class",
     detail: "Esqueleto de classe",
@@ -66,33 +121,101 @@ const CPP_SNIPPETS: SnippetDef[] = [
     detail: "Esqueleto de struct",
     insertText: "struct ${1:Nome} {\n\t${0}\n};",
   },
-  { label: "setprecision", detail: "cout com casas decimais fixas", insertText: "cout << fixed << setprecision(${1:2});" },
+  {
+    label: "setprecision",
+    detail: "cout com casas decimais fixas",
+    insertText: "cout << fixed << setprecision(${1:2});",
+  },
 ];
 
 // Os equivalentes em C puro: sem iostream, sem vector, sem string — aqui e
 // stdio.h, scanf/printf e vetores estaticos.
 const C_SNIPPETS: SnippetDef[] = [
-  { label: "main", detail: "Esqueleto de função main", insertText: "int main() {\n\t${0}\n\treturn 0;\n}" },
-  { label: "inclstdio", detail: "#include <stdio.h>", insertText: "#include <stdio.h>" },
-  { label: "inclstdlib", detail: "#include <stdlib.h>", insertText: "#include <stdlib.h>" },
-  { label: "inclstring", detail: "#include <string.h>", insertText: "#include <string.h>" },
-  { label: "inclmath", detail: "#include <math.h>", insertText: "#include <math.h>" },
+  {
+    label: "main",
+    detail: "Esqueleto de função main",
+    insertText: "int main() {\n\t${0}\n\treturn 0;\n}",
+  },
+  {
+    label: "inclstdio",
+    detail: "#include <stdio.h>",
+    insertText: "#include <stdio.h>",
+  },
+  {
+    label: "inclstdlib",
+    detail: "#include <stdlib.h>",
+    insertText: "#include <stdlib.h>",
+  },
+  {
+    label: "inclstring",
+    detail: "#include <string.h>",
+    insertText: "#include <string.h>",
+  },
+  {
+    label: "inclmath",
+    detail: "#include <math.h>",
+    insertText: "#include <math.h>",
+  },
   {
     label: "for",
     detail: "Loop for clássico",
     insertText: "for (int ${1:i} = 0; ${1:i} < ${2:n}; ${1:i}++) {\n\t${0}\n}",
   },
-  { label: "while", detail: "Loop while", insertText: "while (${1:condicao}) {\n\t${0}\n}" },
-  { label: "ifelse", detail: "if / else", insertText: "if (${1:condicao}) {\n\t${2}\n} else {\n\t${0}\n}" },
-  { label: "scanfint", detail: "Ler um inteiro", insertText: "scanf(\"%d\", &${0:variavel});" },
-  { label: "scanffloat", detail: "Ler um float", insertText: "scanf(\"%f\", &${0:variavel});" },
-  { label: "scanfstring", detail: "Ler uma string", insertText: "scanf(\"%s\", ${0:texto});" },
-  { label: "printfint", detail: "Imprimir inteiro com quebra de linha", insertText: "printf(\"%d\\n\", ${0:valor});" },
-  { label: "printffloat", detail: "Imprimir float com casas decimais", insertText: "printf(\"%.${1:2}f\\n\", ${0:valor});" },
-  { label: "printfstring", detail: "Imprimir texto com quebra de linha", insertText: "printf(\"%s\\n\", ${0:texto});" },
-  { label: "vetorint", detail: "Vetor estático de inteiros", insertText: "int ${1:v}[${2:100}];" },
-  { label: "vetorchar", detail: "Vetor de caracteres (string em C)", insertText: "char ${1:texto}[${2:100}];" },
-  { label: "struct", detail: "Esqueleto de struct", insertText: "struct ${1:Nome} {\n\t${0}\n};" },
+  {
+    label: "while",
+    detail: "Loop while",
+    insertText: "while (${1:condicao}) {\n\t${0}\n}",
+  },
+  {
+    label: "ifelse",
+    detail: "if / else",
+    insertText: "if (${1:condicao}) {\n\t${2}\n} else {\n\t${0}\n}",
+  },
+  {
+    label: "scanfint",
+    detail: "Ler um inteiro",
+    insertText: 'scanf("%d", &${0:variavel});',
+  },
+  {
+    label: "scanffloat",
+    detail: "Ler um float",
+    insertText: 'scanf("%f", &${0:variavel});',
+  },
+  {
+    label: "scanfstring",
+    detail: "Ler uma string",
+    insertText: 'scanf("%s", ${0:texto});',
+  },
+  {
+    label: "printfint",
+    detail: "Imprimir inteiro com quebra de linha",
+    insertText: 'printf("%d\\n", ${0:valor});',
+  },
+  {
+    label: "printffloat",
+    detail: "Imprimir float com casas decimais",
+    insertText: 'printf("%.${1:2}f\\n", ${0:valor});',
+  },
+  {
+    label: "printfstring",
+    detail: "Imprimir texto com quebra de linha",
+    insertText: 'printf("%s\\n", ${0:texto});',
+  },
+  {
+    label: "vetorint",
+    detail: "Vetor estático de inteiros",
+    insertText: "int ${1:v}[${2:100}];",
+  },
+  {
+    label: "vetorchar",
+    detail: "Vetor de caracteres (string em C)",
+    insertText: "char ${1:texto}[${2:100}];",
+  },
+  {
+    label: "struct",
+    detail: "Esqueleto de struct",
+    insertText: "struct ${1:Nome} {\n\t${0}\n};",
+  },
 ];
 
 const SNIPPETS_BY_LANGUAGE: Record<string, SnippetDef[]> = {
@@ -107,7 +230,10 @@ function registerCompletions(monaco: Monaco) {
   completionsRegistered = true;
   for (const [monacoId, snippets] of Object.entries(SNIPPETS_BY_LANGUAGE)) {
     monaco.languages.registerCompletionItemProvider(monacoId, {
-      provideCompletionItems(model: MonacoEditorNS.ITextModel, position: Position) {
+      provideCompletionItems(
+        model: MonacoEditorNS.ITextModel,
+        position: Position,
+      ) {
         const word = model.getWordUntilPosition(position);
         const range = {
           startLineNumber: position.lineNumber,
@@ -121,7 +247,8 @@ function registerCompletions(monaco: Monaco) {
             kind: monaco.languages.CompletionItemKind.Snippet,
             detail: s.detail,
             insertText: s.insertText,
-            insertTextRules: monaco.languages.CompletionItemInsertTextRule.InsertAsSnippet,
+            insertTextRules:
+              monaco.languages.CompletionItemInsertTextRule.InsertAsSnippet,
             range,
           })),
         };
@@ -181,7 +308,16 @@ const handleBeforeMount: BeforeMount = (monaco) => {
 
 function SunIcon() {
   return (
-    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <svg
+      width="14"
+      height="14"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    >
       <circle cx="12" cy="12" r="4" />
       <path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41" />
     </svg>
@@ -190,7 +326,16 @@ function SunIcon() {
 
 function MoonIcon() {
   return (
-    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <svg
+      width="14"
+      height="14"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    >
       <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z" />
     </svg>
   );
@@ -201,11 +346,14 @@ export default function CodeEditor({
   language,
   onLanguageChange,
   onChange,
+  notes,
+  onNotesChange,
   readOnly,
   onCursorChange,
   remoteCursor,
 }: CodeEditorProps) {
   const languageDef = LANGUAGES[language];
+  const [tab, setTab] = useState<"codigo" | "rascunho">("codigo");
   // O editor segue o tema do site por padrão — antes ele ficava branco com o
   // resto escuro, o que o relatório de UI apontou como transição brusca. O
   // botão continua existindo pra quem quiser um tema só pro editor.
@@ -248,12 +396,23 @@ export default function CodeEditor({
     const lineDecoration: MonacoEditorNS.IModelDeltaDecoration[] = remoteCursor
       ? [
           {
-            range: new monaco.Range(remoteCursor.lineNumber, 1, remoteCursor.lineNumber, 1),
-            options: { isWholeLine: true, className: "dojo-remote-cursor-line" },
+            range: new monaco.Range(
+              remoteCursor.lineNumber,
+              1,
+              remoteCursor.lineNumber,
+              1,
+            ),
+            options: {
+              isWholeLine: true,
+              className: "dojo-remote-cursor-line",
+            },
           },
         ]
       : [];
-    decorationIdsRef.current = editorInstance.deltaDecorations(decorationIdsRef.current, lineDecoration);
+    decorationIdsRef.current = editorInstance.deltaDecorations(
+      decorationIdsRef.current,
+      lineDecoration,
+    );
 
     if (cursorWidgetRef.current) {
       editorInstance.removeContentWidget(cursorWidgetRef.current);
@@ -268,7 +427,10 @@ export default function CodeEditor({
         getId: () => "dojo-remote-cursor-widget",
         getDomNode: () => domNode,
         getPosition: () => ({
-          position: { lineNumber: remoteCursor.lineNumber, column: remoteCursor.column },
+          position: {
+            lineNumber: remoteCursor.lineNumber,
+            column: remoteCursor.column,
+          },
           preference: [
             monaco.editor.ContentWidgetPositionPreference.ABOVE,
             monaco.editor.ContentWidgetPositionPreference.EXACT,
@@ -283,41 +445,85 @@ export default function CodeEditor({
   return (
     <div className="flex h-[50vh] flex-none flex-col bg-dojo-bg md:h-auto md:min-h-0 md:flex-1">
       <div className="flex h-[38px] flex-none items-stretch justify-between border-b border-dojo-border bg-dojo-panel">
-        <div className="flex items-center gap-2.5 border-r border-dojo-border bg-dojo-bg px-3.5 text-[12.5px] text-dojo-textBright" style={{ borderTop: "1px solid var(--dojo-accent)" }}>
-          <div className="flex items-center gap-0.5 rounded-md bg-dojo-surfaceSunken p-0.5" role="group" aria-label="Linguagem">
-            {LANGUAGE_IDS.map((id) => {
-              const active = id === language;
-              return (
-                <button
-                  key={id}
-                  type="button"
-                  onClick={() => !readOnly && onLanguageChange(id)}
-                  aria-pressed={active}
-                  aria-disabled={readOnly}
-                  title={
-                    readOnly
-                      ? "Só o piloto pode trocar a linguagem"
-                      : `Escrever em ${LANGUAGES[id].label} (${LANGUAGES[id].compilerLabel})`
-                  }
-                  className={`flex items-center gap-1.5 rounded px-2 py-[3px] font-mono text-[11px] font-semibold transition ${
-                    readOnly ? "pointer-events-none cursor-not-allowed opacity-50" : ""
-                  }`}
-                  style={{
-                    background: active ? "var(--dojo-surface-raised)" : "transparent",
-                    color: active ? "var(--dojo-text-bright)" : "var(--dojo-text-faint)",
-                    boxShadow: active ? "0 0 0 1px var(--dojo-border2)" : "none",
-                    // O logo colorido já destaca o ativo; o inativo fica dessaturado
-                    // pra a diferença aparecer sem precisar de um fundo forte.
-                    filter: active ? "none" : "grayscale(1)",
-                  }}
-                >
-                  <LanguageLogo language={id} size={13} />
-                  {LANGUAGES[id].label}
-                </button>
-              );
-            })}
+        {/* As duas abas ficam juntas à esquerda; o tema vai pro canto oposto. */}
+        <div className="flex items-stretch">
+          <div
+            className="flex items-center gap-2.5 border-r border-dojo-border px-3.5 text-[12.5px]"
+            style={{
+              background: tab === "codigo" ? "var(--dojo-bg)" : "transparent",
+              color:
+                tab === "codigo"
+                  ? "var(--dojo-text-bright)"
+                  : "var(--dojo-text-dim)",
+              borderTop: `1px solid ${tab === "codigo" ? "var(--dojo-accent)" : "transparent"}`,
+            }}
+          >
+            <div
+              className="flex items-center gap-0.5 rounded-md bg-dojo-surfaceSunken p-0.5"
+              role="group"
+              aria-label="Linguagem"
+            >
+              {LANGUAGE_IDS.map((id) => {
+                const active = id === language;
+                return (
+                  <button
+                    key={id}
+                    type="button"
+                    onClick={() => !readOnly && onLanguageChange(id)}
+                    aria-pressed={active}
+                    aria-disabled={readOnly}
+                    title={
+                      readOnly
+                        ? "Só o piloto pode trocar a linguagem"
+                        : `Escrever em ${LANGUAGES[id].label} (${LANGUAGES[id].compilerLabel})`
+                    }
+                    className={`flex items-center gap-1.5 rounded px-2 py-[3px] font-mono text-[11px] font-semibold transition ${
+                      readOnly
+                        ? "pointer-events-none cursor-not-allowed opacity-50"
+                        : ""
+                    }`}
+                    style={{
+                      background: active
+                        ? "var(--dojo-surface-raised)"
+                        : "transparent",
+                      color: active
+                        ? "var(--dojo-text-bright)"
+                        : "var(--dojo-text-faint)",
+                      boxShadow: active
+                        ? "0 0 0 1px var(--dojo-border2)"
+                        : "none",
+                      // O logo colorido já destaca o ativo; o inativo fica dessaturado
+                      // pra a diferença aparecer sem precisar de um fundo forte.
+                      filter: active ? "none" : "grayscale(1)",
+                    }}
+                  >
+                    <LanguageLogo language={id} size={13} />
+                    {LANGUAGES[id].label}
+                  </button>
+                );
+              })}
+            </div>
+            {languageDef.fileName}
           </div>
-          {languageDef.fileName}
+
+          <button
+            type="button"
+            onClick={() => setTab(tab === "rascunho" ? "codigo" : "rascunho")}
+            aria-pressed={tab === "rascunho"}
+            title="Suas anotações deste problema — só você vê"
+            className="flex items-center gap-2 border-r border-dojo-border px-3.5 text-[12.5px] transition-colors hover:text-dojo-textBright"
+            style={{
+              background: tab === "rascunho" ? "var(--dojo-bg)" : "transparent",
+              color:
+                tab === "rascunho"
+                  ? "var(--dojo-text-bright)"
+                  : "var(--dojo-text-dim)",
+              borderTop: `1px solid ${tab === "rascunho" ? "var(--dojo-accent)" : "transparent"}`,
+            }}
+          >
+            <NotebookIcon />
+            Rascunho
+          </button>
         </div>
         <button
           onClick={() => setOverride(!light)}
@@ -329,7 +535,7 @@ export default function CodeEditor({
         </button>
       </div>
 
-      <div className="min-h-0 flex-1">
+      <div className={tab === "codigo" ? "min-h-0 flex-1" : "hidden"}>
         <Editor
           height="100%"
           language={languageDef.monacoId}
@@ -353,6 +559,43 @@ export default function CodeEditor({
           }}
         />
       </div>
+
+      {tab === "rascunho" && (
+        <div className="flex min-h-0 flex-1 flex-col bg-dojo-bg">
+          <textarea
+            value={notes}
+            onChange={(e) => onNotesChange(e.target.value)}
+            placeholder="Rascunhe aqui: ideias, pseudocódigo, contas, o enunciado picado em pedaços..."
+            aria-label="Rascunho pessoal"
+            spellCheck={false}
+            className="min-h-0 w-full flex-1 resize-none bg-transparent p-4 font-mono text-[13.5px] leading-[1.75] text-dojo-text outline-none"
+          />
+          <div className="flex flex-none items-center gap-2 border-t border-dojo-border bg-dojo-panel px-3.5 py-2 text-[12px] text-dojo-textFaint">
+            <NotebookIcon />
+            Só você vê isso, e fica salvo neste navegador.
+          </div>
+        </div>
+      )}
     </div>
+  );
+}
+
+function NotebookIcon() {
+  return (
+    <svg
+      aria-hidden="true"
+      width="14"
+      height="14"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    >
+      <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20" />
+      <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z" />
+      <path d="M9 7h6M9 11h6" />
+    </svg>
   );
 }

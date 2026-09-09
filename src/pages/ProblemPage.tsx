@@ -38,6 +38,9 @@ export default function ProblemPage({ session }: ProblemPageProps) {
   const [splitPct, setSplitPct] = useState(42);
   // Em telas estreitas os dois painéis não cabem lado a lado: viram abas.
   const [mobileTab, setMobileTab] = useState<"enunciado" | "codigo" | "testes">("enunciado");
+  // Rascunho pessoal por problema: fica no navegador de quem escreveu, não no
+  // banco — é anotação, não solução compartilhada.
+  const [notes, setNotes] = useState("");
   const [celebrating, setCelebrating] = useState(false);
   const [celebrateKey, setCelebrateKey] = useState(0);
   const draggingRef = useRef(false);
@@ -90,6 +93,25 @@ export default function ProblemPage({ session }: ProblemPageProps) {
       }
     })();
   }, [slug]);
+
+  useEffect(() => {
+    if (!problem) return;
+    try {
+      setNotes(localStorage.getItem(`dojo-notes-${problem.id}`) ?? "");
+    } catch {
+      setNotes("");
+    }
+  }, [problem]);
+
+  function handleNotesChange(value: string) {
+    setNotes(value);
+    if (!problem) return;
+    try {
+      localStorage.setItem(`dojo-notes-${problem.id}`, value);
+    } catch {
+      // navegador sem storage: o rascunho vale só enquanto a aba estiver aberta
+    }
+  }
 
   async function fetchHistory(problemId: string) {
     const { data, error } = await supabase
@@ -411,6 +433,8 @@ export default function ProblemPage({ session }: ProblemPageProps) {
             language={room.state.language}
             onLanguageChange={handleLanguageChange}
             onChange={room.updateCode}
+            notes={notes}
+            onNotesChange={handleNotesChange}
             readOnly={!room.isPilot}
             onCursorChange={room.isPilot ? room.broadcastCursor : undefined}
             remoteCursor={

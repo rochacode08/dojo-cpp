@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import type { Problem, Profile, SubmissionHistoryEntry, SubmissionStatus, TestCase } from "../lib/types";
 import { LANGUAGES } from "../lib/languages";
 import { LanguageLogo } from "./Logos";
@@ -38,19 +38,6 @@ interface ProblemPanelProps {
 }
 
 export default function ProblemPanel({ problem, sampleTests, history = [], profiles = [] }: ProblemPanelProps) {
-  const [mode, setMode] = useState<"statement" | "notes">("statement");
-  const [notes, setNotes] = useState("");
-
-  useEffect(() => {
-    setMode("statement");
-    setNotes(localStorage.getItem(`dojo-notes-${problem.id}`) ?? "");
-  }, [problem.id]);
-
-  function handleNotesChange(value: string) {
-    setNotes(value);
-    localStorage.setItem(`dojo-notes-${problem.id}`, value);
-  }
-
   return (
     <section aria-label="Enunciado" className="min-h-0 overflow-y-auto border-b border-dojo-border bg-dojo-bg md:border-b-0 md:border-r">
       <div className="flex max-w-[68ch] flex-col gap-6 px-4 pb-10 pt-5 sm:px-7 sm:pt-6">
@@ -62,28 +49,9 @@ export default function ProblemPanel({ problem, sampleTests, history = [], profi
             {problem.time_limit_ms / 1000}s · {problem.memory_limit_mb}MB
           </span>
           <div className="h-px flex-1 bg-dojo-border" />
-          <button
-            type="button"
-            onClick={() => setMode((m) => (m === "statement" ? "notes" : "statement"))}
-            title={mode === "statement" ? "Abrir rascunho pessoal" : "Voltar pro enunciado"}
-            aria-pressed={mode === "notes"}
-            aria-controls="painel-enunciado-conteudo"
-            className="flex h-8 flex-none items-center gap-1.5 rounded-lg border border-dojo-border2 bg-dojo-surfaceRaised px-3 text-[13px] font-medium text-dojo-textDim transition hover:bg-dojo-surfaceHover hover:text-dojo-textBright active:scale-95"
-          >
-            {mode === "statement" ? (
-              <>
-                <NotebookIcon /> Rascunho
-              </>
-            ) : (
-              <>
-                <DocIcon /> Enunciado
-              </>
-            )}
-          </button>
         </div>
 
-        {mode === "statement" ? (
-          <div id="painel-enunciado-conteudo" key="statement" className="animate-dojo-fade flex flex-col gap-[22px]">
+        <div className="flex flex-col gap-[22px]">
             <div className="flex flex-col gap-3.5 text-[15px] leading-[1.6] text-dojo-text">
               {problem.description.split("\n\n").map((p, i) => (
                 <p key={i} className="m-0">
@@ -114,22 +82,7 @@ export default function ProblemPanel({ problem, sampleTests, history = [], profi
                 </div>
               ))}
             </div>
-          </div>
-        ) : (
-          <div id="painel-enunciado-conteudo" key="notes" className="animate-dojo-fade flex flex-col gap-2">
-            <span className="flex items-center gap-1.5 text-[11px] font-semibold uppercase tracking-[0.06em] text-dojo-textDim">
-              <NotebookIcon />
-              Rascunho — só você vê isso, fica salvo neste navegador
-            </span>
-            <textarea
-              value={notes}
-              onChange={(e) => handleNotesChange(e.target.value)}
-              placeholder="Rascunhe aqui: ideias, pseudocódigo, contas..."
-              aria-label="Rascunho pessoal"
-              className="min-h-[320px] w-full resize-y rounded-lg border border-dojo-border2 bg-dojo-surfaceSunken p-4 font-mono text-[13px] leading-[1.8] text-dojo-text outline-none transition focus:ring-2 focus:ring-dojo-accent"
-            />
-          </div>
-        )}
+        </div>
 
         {problem.hints.length > 0 && <HintsBox key={problem.id} hints={problem.hints} />}
 
@@ -177,26 +130,6 @@ export default function ProblemPanel({ problem, sampleTests, history = [], profi
         )}
       </div>
     </section>
-  );
-}
-
-function NotebookIcon() {
-  return (
-    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-      <path d="M4 3h13a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H4V3Z" />
-      <path d="M4 7h1M4 11h1M4 15h1M4 19h1" />
-      <path d="M9 8h7M9 12h7M9 16h4" />
-    </svg>
-  );
-}
-
-function DocIcon() {
-  return (
-    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-      <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8Z" />
-      <path d="M14 2v6h6" />
-      <path d="M9 13h6M9 17h6" />
-    </svg>
   );
 }
 
