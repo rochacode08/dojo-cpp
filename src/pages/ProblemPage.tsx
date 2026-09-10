@@ -395,7 +395,11 @@ export default function ProblemPage({ session }: ProblemPageProps) {
           className="contents md:grid md:min-h-0"
           style={{ gridTemplateColumns: `${splitPct}% 6px 1fr` }}
         >
-          <div className={`min-h-0 ${mobileTab === "enunciado" ? "" : "hidden md:block"}`}>
+          {/* Quem rola é este wrapper: é ele que tem altura limitada pelo grid.
+              O <section> lá dentro tem altura automática, então um overflow
+              nele nunca dispararia — foi assim que as últimas dicas ficaram
+              inalcançáveis. No mobile a rolagem é a da página. */}
+          <div className={`min-h-0 md:overflow-y-auto ${mobileTab === "enunciado" ? "" : "hidden md:block"}`}>
             <ProblemPanel problem={problem} sampleTests={sampleTests} history={history} profiles={profiles} />
           </div>
 

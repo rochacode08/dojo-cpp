@@ -39,7 +39,7 @@ interface ProblemPanelProps {
 
 export default function ProblemPanel({ problem, sampleTests, history = [], profiles = [] }: ProblemPanelProps) {
   return (
-    <section aria-label="Enunciado" className="min-h-0 overflow-y-auto border-b border-dojo-border bg-dojo-bg md:border-b-0 md:border-r">
+    <section aria-label="Enunciado" className="min-h-full border-b border-dojo-border bg-dojo-bg md:border-b-0 md:border-r">
       <div className="flex max-w-[68ch] flex-col gap-6 px-4 pb-10 pt-5 sm:px-7 sm:pt-6">
         <div className="flex items-center gap-3">
           <span className="text-[12px] font-semibold uppercase tracking-[0.08em] text-dojo-textFaint">
